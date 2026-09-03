@@ -9,7 +9,7 @@ from pathlib import Path
 
 from .analyzer import analyze
 from .runtime import Condition, DeterministicAgent
-from .tasks import DocumentTask, InvoiceTask
+from .tasks import ComparisonTask, DocumentTask, InvoiceTask
 from .telemetry import TelemetrySession
 
 
@@ -21,7 +21,7 @@ def main() -> None:
     run_parser.add_argument("--output", type=Path, required=True)
     run_parser.add_argument(
         "--task",
-        choices=["invoice-total-v1", "document-answer-v1"],
+        choices=["invoice-total-v1", "document-answer-v1", "two-option-comparison-v1"],
         default="invoice-total-v1",
     )
     run_parser.add_argument(
@@ -38,7 +38,11 @@ def main() -> None:
         session = TelemetrySession(args.output)
         try:
             run_id = str(uuid.uuid4())
-            task = InvoiceTask() if args.task == "invoice-total-v1" else DocumentTask()
+            task = {
+                "invoice-total-v1": InvoiceTask,
+                "document-answer-v1": DocumentTask,
+                "two-option-comparison-v1": ComparisonTask,
+            }[args.task]()
             result = DeterministicAgent(session.tracer).run(
                 task, Condition(args.condition), run_id
             )

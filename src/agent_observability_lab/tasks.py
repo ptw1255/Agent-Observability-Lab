@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
 from pathlib import Path
 
 
@@ -34,3 +35,21 @@ class DocumentTask:
             / f"{self.document_id}.md"
         )
         return fixture.read_text(encoding="utf-8")
+
+
+@dataclass(frozen=True)
+class ComparisonTask:
+    task_id: str = "two-option-comparison-v1"
+    query: str = "Which option has the lower delivered cost?"
+    option_a_id: str = "option-a-v1"
+    option_b_id: str = "option-b-v1"
+    expected_answer: str = "option-a-v1"
+
+    def option(self, option_id: str) -> dict[str, float | str]:
+        fixture = (
+            Path(__file__).resolve().parents[2]
+            / "fixtures"
+            / "options"
+            / f"{option_id}.json"
+        )
+        return json.loads(fixture.read_text(encoding="utf-8"))

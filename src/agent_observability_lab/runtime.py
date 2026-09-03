@@ -11,7 +11,7 @@ from enum import StrEnum
 from opentelemetry import trace
 from opentelemetry.trace import SpanKind, Status, StatusCode
 
-from .tasks import DocumentTask, InvoiceTask
+from .tasks import ComparisonTask, DocumentTask, InvoiceTask
 
 
 class Condition(StrEnum):
@@ -144,22 +144,6 @@ class DeterministicAgent:
             if depth < max_depth:
                 self._excessive_reflection(run_id, depth + 1, max_depth)
 
-    def _excessive_reflection(self, run_id: str, depth: int, max_depth: int) -> None:
-        """Create an intentionally deep but deterministic planning path."""
-        with self.tracer.start_as_current_span(
-            "plan reflection",
-            kind=SpanKind.INTERNAL,
-            attributes={
-                "gen_ai.operation.name": "plan",
-                "gen_ai.agent.name": "deterministic-agent",
-                "agent_observability_lab.run_id": run_id,
-                "agent_observability_lab.step_number": depth,
-            },
-        ):
-            self._model_call(f"reflection-{depth}", run_id, output_tokens=64)
-            if depth < max_depth:
-                self._excessive_reflection(run_id, depth + 1, max_depth)
-
     def _run_invoice(self, task: InvoiceTask, condition: Condition, run_id: str):
         self._model_call("plan", run_id)
         if condition == Condition.EXCESSIVE_PATH:
@@ -230,8 +214,134 @@ class DeterministicAgent:
         self._model_call("answer", run_id, output_tokens=20)
         return task.expected_answer
 
+    def _lookup(
+        self,
+        task: ComparisonTask,
+        option_id: str,
+        run_id: str,
+        attempt: int,
+        should_fail: bool,
+        logical_operation_id: str,
+    ) -> dict[str, float | str]:
+        arguments = {"option_id": option_id, "query": task.query}
+        with self.tracer.start_as_current_span(
+            "execute_tool local_lookup",
+            kind=SpanKind.INTERNAL,
+            attributes={
+                "gen_ai.operation.name": "retrieve",
+                "gen_ai.tool.name": "local_lookup",
+                "gen_ai.data_source.id": option_id,
+                "agent_observability_lab.run_id": run_id,
+                "agent_observability_lab.logical_operation_id": logical_operation_id,
+                "agent_observability_lab.attempt_number": attempt,
+                "agent_observability_lab.argument_fingerprint": _fingerprint(arguments),
+            },
+        ) as span:
+            time.sleep(0.001)
+            if should_fail:
+                error = ToolExecutionError("option unavailable")
+                span.record_exception(error)
+                span.set_status(Status(StatusCode.ERROR, str(error)))
+                span.set_attribute("error.type", "tool_unavailable")
+                raise error
+            return task.option(option_id)
+
+    def _comparison_calculator(
+        self,
+        option_a: dict[str, float | str],
+        option_b: dict[str, float | str],
+        run_id: str,
+    ) -> str:
+        arguments = {
+            "option_a_total": float(option_a["base_price"]) + float(option_a["shipping"]),
+            "option_b_total": float(option_b["base_price"]) + float(option_b["shipping"]),
+        }
+        with self.tracer.start_as_current_span(
+            "execute_tool calculator",
+            kind=SpanKind.INTERNAL,
+            attributes={
+                "gen_ai.operation.name": "execute_tool",
+                "gen_ai.tool.name": "calculator",
+                "agent_observability_lab.run_id": run_id,
+                "agent_observability_lab.logical_operation_id": "comparison-total",
+                "agent_observability_lab.attempt_number": 1,
+                "agent_observability_lab.argument_fingerprint": _fingerprint(arguments),
+            },
+        ):
+            time.sleep(0.001)
+            return (
+                str(option_a["option_id"])
+                if arguments["option_a_total"] < arguments["option_b_total"]
+                else str(option_b["option_id"])
+            )
+
+    def _run_comparison(
+        self, task: ComparisonTask, condition: Condition, run_id: str
+    ):
+        self._model_call("plan", run_id)
+        if condition == Condition.EXCESSIVE_PATH:
+            self._excessive_reflection(run_id, depth=1, max_depth=5)
+
+        if condition == Condition.RETRY_LOOP:
+            for attempt in range(1, 4):
+                try:
+                    self._lookup(
+                        task,
+                        task.option_a_id,
+                        run_id,
+                        attempt,
+                        should_fail=True,
+                        logical_operation_id="comparison-option-a",
+                    )
+                except ToolExecutionError:
+                    self._model_call("retry-decision", run_id, output_tokens=20)
+            raise ToolExecutionError("retry budget exhausted")
+
+        try:
+            option_a = self._lookup(
+                task,
+                task.option_a_id,
+                run_id,
+                attempt=1,
+                should_fail=condition == Condition.TRANSIENT_TOOL_FAILURE,
+                logical_operation_id="comparison-option-a",
+            )
+        except ToolExecutionError:
+            self._model_call("recover", run_id, output_tokens=18)
+            option_a = self._lookup(
+                task,
+                task.option_a_id,
+                run_id,
+                attempt=2,
+                should_fail=False,
+                logical_operation_id="comparison-option-a",
+            )
+        option_b = self._lookup(
+            task,
+            task.option_b_id,
+            run_id,
+            attempt=1,
+            should_fail=False,
+            logical_operation_id="comparison-option-b",
+        )
+        if condition == Condition.REDUNDANT_TOOL_USE:
+            self._lookup(
+                task,
+                task.option_b_id,
+                run_id,
+                attempt=1,
+                should_fail=False,
+                logical_operation_id="comparison-option-b-duplicate",
+            )
+        answer = self._comparison_calculator(option_a, option_b, run_id)
+        self._model_call("finalize", run_id, output_tokens=16)
+        return answer
+
     def run(
-        self, task: InvoiceTask | DocumentTask, condition: Condition, run_id: str
+        self,
+        task: InvoiceTask | DocumentTask | ComparisonTask,
+        condition: Condition,
+        run_id: str,
     ) -> RunResult:
         with self.tracer.start_as_current_span(
             "invoke_agent deterministic-agent",
@@ -247,6 +357,8 @@ class DeterministicAgent:
             try:
                 if isinstance(task, DocumentTask):
                     answer = self._run_document(task, condition, run_id)
+                elif isinstance(task, ComparisonTask):
+                    answer = self._run_comparison(task, condition, run_id)
                 else:
                     answer = self._run_invoice(task, condition, run_id)
             except ToolExecutionError as error:

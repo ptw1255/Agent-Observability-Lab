@@ -44,7 +44,7 @@ Comparing the same runs across these profiles will show what basic telemetry can
 
 The complete v0 protocol is in [EXPERIMENT_PLAN.md](EXPERIMENT_PLAN.md). The expected learning path, outcome interpretation, and concise variable definitions are in [LEARNING_GUIDE.md](LEARNING_GUIDE.md). Collection, provenance, storage, and project-memory rules are in [DATA_MANAGEMENT.md](DATA_MANAGEMENT.md).
 
-Progress is recorded as numbered checkpoints in the [Journal](Journal/). Start with [Journal.1](Journal/Journal.1.md); [Journal.3](Journal/Journal.3.md) describes the next implementation task. New checkpoints continue as `Journal.N+1`.
+Progress is recorded as numbered checkpoints in the [Journal](Journal/). Start with [Journal.1](Journal/Journal.1.md); [Journal.4](Journal/Journal.4.md) describes the next implementation task. New checkpoints continue as `Journal.N+1`.
 
 ## First-slice development
 

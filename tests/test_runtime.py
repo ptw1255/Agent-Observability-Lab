@@ -1,7 +1,7 @@
 import json
 
 from agent_observability_lab.runtime import Condition, DeterministicAgent
-from agent_observability_lab.tasks import DocumentTask, InvoiceTask
+from agent_observability_lab.tasks import ComparisonTask, DocumentTask, InvoiceTask
 from agent_observability_lab.telemetry import TelemetrySession
 
 
@@ -67,3 +67,31 @@ def test_document_task_uses_local_retrieval_boundary(tmp_path):
     ]
     retrieval = next(record for record in records if "local_retrieval" in record["name"])
     assert retrieval["attributes"]["gen_ai.data_source.id"] == "returns-policy-v1"
+
+
+def test_comparison_task_uses_two_lookup_boundaries(tmp_path):
+    output = tmp_path / "comparison.jsonl"
+    session = TelemetrySession(output)
+    try:
+        result = DeterministicAgent(session.tracer).run(
+            ComparisonTask(), Condition.BASELINE, "opaque-comparison-run"
+        )
+    finally:
+        session.shutdown()
+    records = [json.loads(line) for line in output.read_text().splitlines()]
+
+    assert result.answer == "option-a-v1"
+    assert [record["name"] for record in records] == [
+        "chat scripted-model",
+        "execute_tool local_lookup",
+        "execute_tool local_lookup",
+        "execute_tool calculator",
+        "chat scripted-model",
+        "invoke_agent deterministic-agent",
+    ]
+    lookup_ids = [
+        record["attributes"]["gen_ai.data_source.id"]
+        for record in records
+        if record["name"] == "execute_tool local_lookup"
+    ]
+    assert lookup_ids == ["option-a-v1", "option-b-v1"]

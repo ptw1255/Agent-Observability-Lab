@@ -4,7 +4,7 @@ from agent_observability_lab.analyzer import analyze
 import pytest
 
 from agent_observability_lab.runtime import Condition, DeterministicAgent
-from agent_observability_lab.tasks import DocumentTask, InvoiceTask
+from agent_observability_lab.tasks import ComparisonTask, DocumentTask, InvoiceTask
 from agent_observability_lab.telemetry import TelemetrySession
 
 
@@ -74,3 +74,31 @@ def test_document_task_conditions_remain_blind(tmp_path, condition):
         assert "retry_loop" in {item["type"] for item in report["findings"]}
     else:
         assert result.answer == "30 days"
+
+
+def test_comparison_baseline_does_not_look_redundant(tmp_path):
+    output = tmp_path / "comparison-baseline.jsonl"
+    session = TelemetrySession(output)
+    try:
+        DeterministicAgent(session.tracer).run(
+            ComparisonTask(), Condition.BASELINE, "opaque-comparison-run"
+        )
+    finally:
+        session.shutdown()
+
+    finding_types = {item["type"] for item in analyze(output)[0]["findings"]}
+    assert "candidate_redundant_tool_use" not in finding_types
+
+
+def test_comparison_redundant_lookup_is_detected(tmp_path):
+    output = tmp_path / "comparison-redundant.jsonl"
+    session = TelemetrySession(output)
+    try:
+        DeterministicAgent(session.tracer).run(
+            ComparisonTask(), Condition.REDUNDANT_TOOL_USE, "opaque-comparison-run"
+        )
+    finally:
+        session.shutdown()
+
+    finding_types = {item["type"] for item in analyze(output)[0]["findings"]}
+    assert "candidate_redundant_tool_use" in finding_types
