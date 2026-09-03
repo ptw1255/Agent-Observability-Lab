@@ -1,37 +1,37 @@
-# Journal.3 — Next task: two-option comparison
+# Journal.3 — Two-option comparison task
 
-## What we are going to do
+## What will change
 
-Add the third deterministic workload: a comparison that uses two lookup tools and a calculator.
-
-The intended healthy path is:
+Add a third deterministic task with this healthy operation sequence:
 
 ```text
-agent invocation → model: plan → lookup A → lookup B → calculator → model: finalize
+invoke_agent → chat plan → lookup A → lookup B → calculator → chat finalize
 ```
 
-The task will use local synthetic fixtures with known values and a deterministic answer. It should exercise a deeper valid topology and multiple tool identities without introducing parallel execution yet.
+The task will use local fixtures with known values and a fixed expected answer.
 
 ## Why we are doing it
 
-The invoice task tests one calculator boundary, and the document task tests retrieval plus answer generation. The comparison task tests whether the same telemetry and detector logic can reconstruct a multi-tool path and distinguish legitimate multiple calls from redundant calls.
+The first task has one calculator call. The second has one retrieval call. The comparison task adds multiple tool identities and a deeper valid graph.
 
-## Meaningful results at this checkpoint
+This gives the analyzer a case where multiple tool calls are required. That distinction is needed before testing whether repeated work is redundant.
 
-Not yet. This is the next implementation task.
+## Result at this checkpoint
 
-The result will be meaningful if the task can be added while preserving:
+No implementation result yet. This checkpoint defines the next task.
 
-- the same five controlled conditions;
-- boundary-only instrumentation;
-- condition-blind analyzer input;
-- correct operation ordering and parentage;
-- passing tests for the first two tasks.
+The task is ready to close when:
 
-## What we need to do next
+- all five conditions run through the same runtime;
+- the healthy sequence and parentage are correct;
+- lookup and calculator spans use the existing boundary contract;
+- condition labels stay out of telemetry;
+- the 12 existing tests still pass.
 
-- Add versioned lookup fixtures for the two options.
-- Add deterministic lookup and calculator tool adapters or compose the existing calculator boundary.
-- Add task selection and expected-answer evaluation.
-- Test all five conditions on the new multi-tool topology.
-- Start capturing task-specific healthy graph definitions for the future oracle.
+## Next step
+
+- Add versioned fixtures for lookup A and lookup B.
+- Add deterministic lookup operations.
+- Add task selection and expected-answer checks.
+- Test all five conditions on the multi-tool graph.
+- Record the implementation commit in `Journal.4`.
