@@ -284,7 +284,7 @@ The implementation should include automated tests that assert the analyzer canno
 The exact CLI may change during implementation, but v0 should target a workflow this small:
 
 ```shell
-# Planned commands; not implemented yet.
+# Target v0 commands; only the first-slice form is implemented currently.
 python -m agent_observability_lab run --all
 python -m agent_observability_lab analyze --all-profiles
 
@@ -342,7 +342,7 @@ Agent-Observability-Lab/
 └── tests/
 ```
 
-The data-management documents, project-record templates, and empty registry exist initially. The remaining paths describe the later local implementation and generated outputs.
+The data-management documents, project-record templates, empty registry, and first-slice package exist now. The remaining paths describe the later local implementation and generated outputs.
 
 ## 15. Result format
 

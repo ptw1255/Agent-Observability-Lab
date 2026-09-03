@@ -1,3 +1,39 @@
+Metadata-Version: 2.4
+Name: agent-observability-lab
+Version: 0.1.0
+Summary: A hands-on study of OpenTelemetry as evidence about AI agent execution.
+Author: ptw1255 contributors
+License: MIT License
+        
+        Copyright (c) 2026 ptw1255 contributors
+        
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+        
+        The above copyright notice and this permission notice shall be included in all
+        copies or substantial portions of the Software.
+        
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
+        
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: opentelemetry-api<2,>=1.30
+Requires-Dist: opentelemetry-sdk<2,>=1.30
+Provides-Extra: dev
+Requires-Dist: pytest<9,>=8; extra == "dev"
+Dynamic: license-file
+
 # Agent Observability Lab
 
 > Can OpenTelemetry reconstruct an AI agent's execution behavior well enough to identify inefficient or failed execution paths without instrumenting every business-logic step manually?
@@ -8,9 +44,7 @@ The wording is intentional: this project studies **execution paths**, not hidden
 
 ## Status
 
-**Initial slice implemented.** The full experiment has not been run and this repository contains no experiment results yet.
-
-The current slice includes a deterministic invoice task, baseline and transient-tool-failure conditions, local JSONL OpenTelemetry export, a telemetry-only tool-failure detector, and unit tests. The remaining task families, conditions, evidence projections, and scoring workflow are still to be built.
+**Planning only.** The experiment has not been implemented or run, and this repository contains no results yet.
 
 ## Local-first v0 scope
 
@@ -49,15 +83,6 @@ Comparing the same runs across these profiles will show what basic telemetry can
 - a later, separate study of telemetry as an agent-runtime feedback signal.
 
 The complete v0 protocol is in [EXPERIMENT_PLAN.md](EXPERIMENT_PLAN.md). The expected learning path, outcome interpretation, and concise variable definitions are in [LEARNING_GUIDE.md](LEARNING_GUIDE.md). Collection, provenance, storage, and project-memory rules are in [DATA_MANAGEMENT.md](DATA_MANAGEMENT.md).
-
-## First-slice development
-
-```shell
-python3 -m pip install -e '.[dev]'
-pytest -q
-```
-
-The tests validate span export, parent topology, failure recording, and blind detection. They do not run the planned 75-run experiment.
 
 ## References
 
