@@ -1,5 +1,0 @@
-opentelemetry-api<2,>=1.30
-opentelemetry-sdk<2,>=1.30
-
-[dev]
-pytest<9,>=8
