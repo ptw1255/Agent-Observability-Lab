@@ -32,6 +32,7 @@ def score_report(report: dict[str, object], oracle: dict[str, object]) -> dict[s
     resource_fields = [
         "model_call_count",
         "tool_call_count",
+        "max_depth",
         "input_tokens",
         "output_tokens",
     ]

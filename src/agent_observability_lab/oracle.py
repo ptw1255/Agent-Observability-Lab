@@ -101,6 +101,47 @@ REDUNDANT_COMPARISON_RESOURCES = {
     "expected_output_tokens": 40,
 }
 
+EXCESSIVE_INVOICE_GRAPH = [
+    "invoke_agent deterministic-agent",
+    "chat scripted-model",
+    "plan reflection",
+    "chat scripted-model",
+    "plan reflection",
+    "chat scripted-model",
+    "plan reflection",
+    "chat scripted-model",
+    "plan reflection",
+    "chat scripted-model",
+    "plan reflection",
+    "chat scripted-model",
+    "execute_tool calculator",
+    "chat scripted-model",
+]
+
+EXCESSIVE_INVOICE_RESOURCES = {
+    "expected_model_call_count": 7,
+    "expected_tool_call_count": 1,
+    "expected_max_depth": 6,
+    "expected_input_tokens": 224,
+    "expected_output_tokens": 360,
+}
+
+EXCESSIVE_INVOICE_EDGES = [
+    {"parent_index": 0, "child_index": 1},
+    {"parent_index": 0, "child_index": 2},
+    {"parent_index": 2, "child_index": 3},
+    {"parent_index": 2, "child_index": 4},
+    {"parent_index": 4, "child_index": 5},
+    {"parent_index": 4, "child_index": 6},
+    {"parent_index": 6, "child_index": 7},
+    {"parent_index": 6, "child_index": 8},
+    {"parent_index": 8, "child_index": 9},
+    {"parent_index": 8, "child_index": 10},
+    {"parent_index": 10, "child_index": 11},
+    {"parent_index": 0, "child_index": 12},
+    {"parent_index": 0, "child_index": 13},
+]
+
 
 def build_oracle(trace_path: Path, task_id: str, condition: str) -> dict[str, object]:
     """Build one oracle from a raw trace and a known deterministic task graph."""
@@ -143,18 +184,26 @@ def build_oracle(trace_path: Path, task_id: str, condition: str) -> dict[str, ob
         resources = REDUNDANT_COMPARISON_RESOURCES
         expected_findings = ["candidate_redundant_tool_use"]
         expected_attempt_numbers = [1, 1, 1, 1]
+    elif task_id == "invoice-total-v1" and condition == "excessive_path":
+        expected_sequence = EXCESSIVE_INVOICE_GRAPH
+        resources = EXCESSIVE_INVOICE_RESOURCES
+        expected_findings = ["excessive_execution_path"]
+        expected_attempt_numbers = [1]
     else:
         raise ValueError(f"oracle graph not yet defined: {task_id}/{condition}")
+    expected_parent_edges = [
+        {"parent_index": 0, "child_index": index}
+        for index in range(1, len(expected_sequence))
+    ]
+    if task_id == "invoice-total-v1" and condition == "excessive_path":
+        expected_parent_edges = EXCESSIVE_INVOICE_EDGES
     return {
         "trace_id": next(iter(trace_ids)),
         "run_id": next(iter(run_ids)),
         "task_id": task_id,
         "condition": condition,
         "expected_sequence": expected_sequence,
-        "expected_parent_edges": [
-            {"parent_index": 0, "child_index": index}
-            for index in range(1, len(expected_sequence))
-        ],
+        "expected_parent_edges": expected_parent_edges,
         "expected_findings": expected_findings,
         "expected_outcome": "failed" if condition == "retry_loop" else "success",
         "expected_root_status": "ERROR" if condition == "retry_loop" else "UNSET",

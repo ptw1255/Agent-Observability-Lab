@@ -135,3 +135,21 @@ def test_redundant_comparison_oracle_captures_duplicate_tool_use(tmp_path):
     assert oracle["expected_findings"] == ["candidate_redundant_tool_use"]
     assert oracle["expected_attempt_numbers"] == [1, 1, 1, 1]
     assert oracle["expected_tool_call_count"] == 4
+
+
+def test_excessive_path_oracle_captures_depth_and_cost(tmp_path):
+    output = tmp_path / "excessive.jsonl"
+    session = TelemetrySession(output)
+    try:
+        DeterministicAgent(session.tracer).run(
+            InvoiceTask(), Condition.EXCESSIVE_PATH, "opaque-run"
+        )
+    finally:
+        session.shutdown()
+
+    oracle = build_oracle(output, "invoice-total-v1", "excessive_path")
+    assert oracle["expected_findings"] == ["excessive_execution_path"]
+    assert oracle["expected_max_depth"] == 6
+    assert oracle["expected_output_tokens"] == 360
+    assert len(oracle["expected_parent_edges"]) == 13
+    assert {"parent_index": 2, "child_index": 4} in oracle["expected_parent_edges"]
