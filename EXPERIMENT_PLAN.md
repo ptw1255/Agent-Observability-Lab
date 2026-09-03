@@ -1,14 +1,14 @@
-# Local v0 Experiment Plan
+# Local-First v0 Experiment Plan
 
 ## 1. Decision summary
 
-The first version will be a small, deterministic experiment that can run entirely on a MacBook Pro. It will not call a hosted model, require Docker, or depend on an observability service.
+The first version will be a small experiment developed and launched from a MacBook Pro. A deterministic, credential-free lane provides the scientific control. An integration lane may use Docker, one hosted model API, and an OTLP-compatible observability backend where they add realism or make traces easier to inspect.
 
 The experiment will ask one narrow question:
 
 > How accurately can a telemetry-only analyzer reconstruct and diagnose agent execution when instrumentation exists only at shared agent, model, and tool boundaries?
 
-The design uses three tasks, five conditions, five repetitions, and three evidence profiles. That produces 75 agent runs and three analysis views of each run. The purpose is to establish a trustworthy baseline before introducing real models, distributed systems, or adaptive runtime behavior.
+The core design uses three tasks, five conditions, five repetitions, and three evidence profiles. That produces 75 deterministic agent runs and three analysis views of each run. After the core passes validation, a 15-run hosted-model integration lane will repeat each task-condition pair once. The purpose is to preserve a trustworthy baseline while testing that the instrumentation also works with a real model and backend.
 
 ## 2. Research boundaries
 
@@ -49,27 +49,29 @@ Standard GenAI telemetry improves diagnosis over structural spans alone, and a s
 
 The experiment will not claim that every expensive or repeated operation is inherently wasteful. “Redundant” and “excessive” are comparative labels established by controlled ground truth in v0.
 
-## 4. Local execution constraints
+## 4. Local-first execution constraints
 
 The future implementation should meet these constraints:
 
 - run on macOS with Python and a local virtual environment;
-- require no API key and make no network calls during an experiment;
-- use a deterministic scripted model adapter and fixture-backed tools;
-- export traces to local JSONL rather than requiring a collector or backend;
+- provide a deterministic mode that requires no API key or network call;
+- use a scripted model adapter and fixture-backed tools for the control lane;
+- support one hosted model adapter configured through environment variables;
+- always export canonical traces to local JSONL;
+- optionally export the same traces over OTLP to a local Docker stack or hosted backend;
 - finish the full 75-run experiment and analysis in under five minutes;
 - use less than 1 GB of memory;
 - keep generated v0 artifacts below 25 MB;
 - support one command to run the experiment and one command to analyze it;
 - produce identical logical outcomes for a fixed seed.
 
-Docker, Jaeger, Grafana, hosted models, and notebooks are explicitly deferred. A trace viewer may be added later as an optional convenience, not as a v0 dependency.
+Docker and an observability UI are optional local infrastructure, not scoring dependencies. Hosted-model and backend credentials must be loaded from environment variables or a local untracked file, never committed or included in telemetry. Notebooks remain deferred because the analyzer and report should be reproducible from the CLI.
 
 ## 5. Workload
 
 ### Agent runtime
 
-Use one small tool-calling loop with replaceable model and tool adapters. The scripted model will choose actions from task fixtures and expose deterministic token counts. The runtime will enforce a fixed step and retry budget.
+Use one small tool-calling loop with replaceable model and tool adapters. The scripted model will choose actions from task fixtures and expose deterministic token counts. One hosted model adapter will exercise the same boundary contract in the integration lane. The runtime will enforce a fixed step and retry budget in both lanes.
 
 ### Tasks
 
@@ -104,6 +106,20 @@ The task input, fixtures, expected answer, model policy, and budgets remain fixe
 ```
 
 Five repetitions are enough to validate determinism and collect basic timing variation on a laptop. This v0 is a functional proof, not a statistically general benchmark.
+
+### Hosted-model integration lane
+
+After the 75-run deterministic matrix passes trace-integrity checks, run one additional repetition for each task-condition pair using one hosted model:
+
+```text
+3 tasks × 5 conditions × 1 repetition = 15 integration runs
+```
+
+These runs test adapter portability, real token reporting, nondeterministic timing, and OTLP export. They are reported separately and do not replace or get pooled with deterministic control results. The run command must support a budget ceiling and dry-run cost estimate before making API calls.
+
+### Observability backend
+
+Local JSONL remains the canonical analysis input. Optionally send the same spans through OTLP to a Dockerized trace backend for visual inspection. A hosted OTLP backend may also be used if configured. Backend ingestion is validated by trace counts and trace IDs, but screenshots or backend queries are not used as ground truth.
 
 ## 6. Instrumentation rule
 
@@ -170,9 +186,9 @@ The implementation will prefer OpenTelemetry semantic conventions and use `agent
 | Reliability | status, exception, error type |
 | Retry | logical operation, attempt, retry outcome |
 | Duplication | normalized argument fingerprint |
-| Reproducibility | code revision, schema version, seed |
+| Reproducibility | code revision, schema version, seed, runtime lane |
 
-Prompt text, model output, raw tool arguments, hidden reasoning, and secrets will not be exported. Synthetic fixtures will be safe to publish, but content capture remains off to preserve the study's boundary.
+Prompt text, model output, raw tool arguments, hidden reasoning, and secrets will not be exported by default. Synthetic fixtures will be safe to publish. If a hosted provider requires content for operation, that content may cross the provider boundary but must not be copied into telemetry. API keys must never appear in traces, logs, fixtures, or committed files.
 
 ## 9. Reconstruction tasks
 
@@ -258,6 +274,8 @@ These thresholds indicate whether the lab is ready to expand. They do not establ
 8. Score the inferred graph, resources, and findings against the oracle.
 9. Inspect and document every false positive and false negative.
 10. Generate a Markdown summary and machine-readable JSON report.
+11. Optionally start the Docker observability stack and verify that exported trace IDs are visible.
+12. Run the 15-case hosted-model integration lane under an explicit cost ceiling and report it separately.
 
 The implementation should include automated tests that assert the analyzer cannot load oracle files and that scenario labels do not appear in exported spans.
 
@@ -269,6 +287,10 @@ The exact CLI may change during implementation, but v0 should target a workflow 
 # Planned commands; not implemented yet.
 python -m agent_observability_lab run --all
 python -m agent_observability_lab analyze --all-profiles
+
+# Optional integration profiles.
+docker compose up -d
+python -m agent_observability_lab run --integration --model-provider <provider>
 ```
 
 Expected local outputs:
@@ -299,6 +321,8 @@ Agent-Observability-Lab/
 │   ├── analyzer.py
 │   └── cli.py
 ├── fixtures/
+├── compose.yaml
+├── .env.example
 ├── tests/
 └── artifacts/
 ```
@@ -325,17 +349,17 @@ This prevents a strong result in one dimension from being presented as proof tha
 
 The following are intentionally outside local v0:
 
-- hosted or local language models;
 - multiple agent frameworks;
+- multiple hosted model providers beyond the single integration adapter;
+- comparisons among hosted observability vendors;
 - distributed context propagation;
 - trace sampling and dropped spans;
 - asynchronous and parallel tool execution;
-- an observability UI or collector stack;
 - learned anomaly detectors;
 - production workloads;
 - runtime intervention.
 
-The first expansion after v0 should test incomplete telemetry and async context propagation. A real-model replication should follow only after the deterministic protocol is trustworthy.
+The first expansion after v0 should test incomplete telemetry and async context propagation. Broader model and backend comparisons should follow only after the deterministic and single-provider protocols are trustworthy.
 
 ## 17. Follow-up: telemetry as feedback
 
@@ -351,4 +375,4 @@ The follow-up must compare task success, latency, tokens, and failure rate again
 
 ## 18. Definition of done for v0
 
-Local v0 is complete when another person can clone the repository, run the entire experiment on a laptop without credentials or external services, reproduce the machine-readable report, audit every diagnosis back to specific spans, and see exactly which execution facts become recoverable at P0, P1, and P2.
+Local v0 is complete when another person can clone the repository, run the deterministic experiment on a laptop without credentials, reproduce the machine-readable report, audit every diagnosis back to specific spans, and see exactly which execution facts become recoverable at P0, P1, and P2. The optional Docker and hosted-model paths must also be documented and verifiable when their credentials or services are available.

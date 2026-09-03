@@ -10,19 +10,21 @@ The wording is intentional: this project studies **execution paths**, not hidden
 
 **Planning only.** The experiment has not been implemented or run, and this repository contains no results yet.
 
-## Local v0 scope
+## Local-first v0 scope
 
-The first experiment is designed to run locally on a MacBook Pro without Docker, a hosted observability backend, a model API key, or network access:
+The experiment is designed to be developed and launched from a MacBook Pro. Its deterministic control path remains credential-free and reproducible, while optional integration profiles may use Docker, a hosted model API, and an OTLP-compatible observability backend:
 
 - one deterministic agent runtime;
 - three fixture-backed tasks;
 - five execution conditions;
 - five repetitions per task-condition pair;
 - 75 total runs;
-- OpenTelemetry traces exported to local JSONL files;
+- OpenTelemetry traces exported to canonical local JSONL files and, optionally, an OTLP backend;
 - a telemetry-only analyzer scored against sealed ground truth.
 
 The five conditions are baseline, transient tool failure, retry loop, redundant tool use, and an excessive-depth/cost path.
+
+After the deterministic matrix is validated, a small 15-run integration lane will repeat each task-condition pair once with one hosted model adapter. A local Docker observability stack can receive the same traces for visual inspection without becoming the source of truth for scoring.
 
 ## Central comparison
 
