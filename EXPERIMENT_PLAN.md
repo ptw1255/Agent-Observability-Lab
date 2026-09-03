@@ -1,367 +1,354 @@
-# Experiment Plan
+# Local v0 Experiment Plan
 
-## 1. Research objective
+## 1. Decision summary
 
-### Primary question
+The first version will be a small, deterministic experiment that can run entirely on a MacBook Pro. It will not call a hosted model, require Docker, or depend on an observability service.
 
-How much agent execution semantics can be reconstructed from runtime telemetry?
+The experiment will ask one narrow question:
 
-More specifically:
+> How accurately can a telemetry-only analyzer reconstruct and diagnose agent execution when instrumentation exists only at shared agent, model, and tool boundaries?
 
-> Can OpenTelemetry reconstruct the execution behavior of an AI agent well enough to identify inefficient or failed reasoning paths without instrumenting every business-logic step manually?
+The design uses three tasks, five conditions, five repetitions, and three evidence profiles. That produces 75 agent runs and three analysis views of each run. The purpose is to establish a trustworthy baseline before introducing real models, distributed systems, or adaptive runtime behavior.
 
-### Follow-up question
+## 2. Research boundaries
 
-Can observability become a useful feedback signal for agent runtimes?
+### What “execution semantics” means here
 
-The project treats telemetry as machine-readable evidence. It will measure whether an independent analyzer can recover operational facts about an agent run, not whether telemetry exposes private chain-of-thought.
+- the model and tool operations that occurred;
+- their order and parent-child relationships;
+- errors, retries, recovery, and termination;
+- latency, token counts, call counts, and maximum depth;
+- repeated or unusually expensive paths relative to a healthy baseline.
 
-## 2. Scope and terminology
+### What it does not mean
 
-For this study, **execution semantics** means externally observable operational structure:
+- hidden chain-of-thought;
+- unrecorded model intent;
+- a complete causal explanation for why a model chose an action;
+- answer correctness without a separate task evaluator.
 
-- which model, tool, retrieval, and agent operations occurred;
-- their ordering and parent-child relationships;
-- latency, token use, errors, and retry behavior;
-- whether an operation succeeded, failed, or recovered;
-- repeated, unusually deep, or unusually expensive execution patterns.
-
-Execution semantics does **not** include latent reasoning, unrecorded intent, or a complete explanation of why a model selected an action. Prompt and response content will be disabled by default. Correctness will require a task evaluator; traces alone cannot establish semantic correctness.
+The project should use “execution path” rather than “reasoning path” except when discussing the distinction explicitly.
 
 ## 3. Claims to test
 
-### H1 — Structural reconstruction
+### H1 — Structure
 
-Boundary-level spans are sufficient to reconstruct the ordered model/tool operation graph with high fidelity.
+Boundary spans are sufficient to reconstruct operation order and execution topology.
 
-### H2 — Failure-path detection
+### H2 — Failures
 
-Errors, status, timing, and repeated operation signatures are sufficient to identify injected tool failures and retry loops.
+Span status, errors, timing, and repeated operation signatures are sufficient to identify tool failures and retry loops.
 
-### H3 — Inefficiency detection
+### H3 — Inefficiency
 
-Topology plus resource attributes are sufficient to distinguish redundant tool use, abnormal depth, and expensive reasoning paths from healthy baselines.
+Calls, topology, tokens, and normalized operation signatures can identify candidate redundant work and excessive execution paths relative to baseline behavior.
 
-### H4 — Instrumentation tradeoff
+### H4 — Evidence value
 
-Agent-, model-, and tool-boundary instrumentation recovers most actionable execution semantics without adding spans to each business-logic branch.
+Standard GenAI telemetry improves diagnosis over structural spans alone, and a small number of boundary-level correlation fields improves it further.
 
-### H5 — Feedback viability
+The experiment will not claim that every expensive or repeated operation is inherently wasteful. “Redundant” and “excessive” are comparative labels established by controlled ground truth in v0.
 
-Some telemetry-derived signals are stable and timely enough to support bounded runtime actions such as retry-budget reduction, loop termination, or fallback routing.
+## 4. Local execution constraints
 
-## 4. Study design
+The future implementation should meet these constraints:
 
-The study will use a controlled repeated-measures design. Every task instance will be run in a baseline condition and in each applicable fault condition. Inputs, tool fixtures, model configuration, seeds, retry policy, and environment will remain fixed within a comparison block.
+- run on macOS with Python and a local virtual environment;
+- require no API key and make no network calls during an experiment;
+- use a deterministic scripted model adapter and fixture-backed tools;
+- export traces to local JSONL rather than requiring a collector or backend;
+- finish the full 75-run experiment and analysis in under five minutes;
+- use less than 1 GB of memory;
+- keep generated v0 artifacts below 25 MB;
+- support one command to run the experiment and one command to analyze it;
+- produce identical logical outcomes for a fixed seed.
 
-The analyzer will receive only exported telemetry. Ground-truth execution logs and scenario labels will be stored separately and used only during scoring.
+Docker, Jaeger, Grafana, hosted models, and notebooks are explicitly deferred. A trace viewer may be added later as an optional convenience, not as a v0 dependency.
 
-```mermaid
-flowchart LR
-    T[Fixed task corpus] --> R[Instrumented agent runtime]
-    F[Fault injector] --> R
-    R --> O[OpenTelemetry signals]
-    R --> G[Sealed ground truth]
-    O --> A[Telemetry-only analyzer]
-    A --> I[Inferred execution semantics]
-    I --> S[Scoring]
-    G --> S
+## 5. Workload
+
+### Agent runtime
+
+Use one small tool-calling loop with replaceable model and tool adapters. The scripted model will choose actions from task fixtures and expose deterministic token counts. The runtime will enforce a fixed step and retry budget.
+
+### Tasks
+
+Use three task families with known correct answers and known valid operation graphs.
+
+| Task | Healthy path | Why it is useful |
+| --- | --- | --- |
+| Invoice total | Model → calculator → model | Smallest complete tool loop |
+| Local document answer | Model → local retrieval → model | Adds a retrieval-like boundary and fixture evidence |
+| Two-option comparison | Model → lookup A → lookup B → calculator → model | Adds multiple tools and a deeper valid topology |
+
+Each family will have one fixed v0 task instance. More instances are deferred until the harness and metrics are validated.
+
+### Conditions
+
+Every task will run under the same five conditions.
+
+| Condition | Controlled injection | Expected observable signature |
+| --- | --- | --- |
+| Baseline | None | Valid short topology with no errors |
+| Transient tool failure | First selected tool call fails, then succeeds | Tool error followed by recovery |
+| Retry loop | Selected tool repeatedly fails until the retry budget is exhausted | Repeated signature, repeated errors, terminal failure |
+| Redundant tool use | One successful deterministic tool call is repeated | Duplicate successful signature with no new fixture information |
+| Excessive path | Add unnecessary nested model/reflection steps | Elevated depth, model calls, tokens, and latency |
+
+The task input, fixtures, expected answer, model policy, and budgets remain fixed within a task. Only the injected condition changes.
+
+### Run count
+
+```text
+3 tasks × 5 conditions × 5 repetitions = 75 runs
 ```
 
-### Experimental unit
+Five repetitions are enough to validate determinism and collect basic timing variation on a laptop. This v0 is a functional proof, not a statistically general benchmark.
 
-One agent run of one fixed task under one condition and one seed.
+## 6. Instrumentation rule
 
-### Initial task corpus
-
-Start with deterministic or fixture-backed tasks whose expected outcomes and legal tool paths are known:
-
-1. single-tool calculation;
-2. retrieve-then-summarize;
-3. two-tool comparison;
-4. conditional tool routing;
-5. bounded multi-step planning.
-
-Use at least 10 task instances per task family. Run at least 30 repetitions per task-condition pair when timing distributions are part of the analysis. A pilot phase will estimate variance before final sample sizes are locked.
-
-### Two-phase execution strategy
-
-**Phase A: deterministic runtime.** Use a scripted model adapter and fixture-backed tools. This validates instrumentation, fault injection, reconstruction, and scoring without provider variance.
-
-**Phase B: real model runtime.** Repeat a selected subset with a pinned model snapshot where available, fixed generation settings, and recorded provider metadata. This measures how the approach survives nondeterminism and real network behavior.
-
-## 5. Conditions and failure modes
-
-Each condition must preserve the task input and expected outcome while changing only the injected runtime behavior.
-
-| Condition | Injection | Expected observable signature |
-| --- | --- | --- |
-| Baseline | No injected fault | Short valid topology, no errors, expected resource range |
-| Transient tool failure | Fail the first matching tool call | Error span followed by a successful recovery path |
-| Retry loop | Repeatedly fail or return retryable status | Repeated operation signature, repeated errors, growing latency/depth |
-| Redundant tool use | Repeat a successful call with identical normalized arguments | Duplicate successful tool signatures with no new dependency |
-| Expensive reasoning path | Add unnecessary model/reflection turns | Elevated model-call count, token use, and critical-path latency |
-| Tool timeout | Delay a selected tool beyond its deadline | Long tool span, timeout error, cancellation or fallback edge |
-| Malformed tool result | Return schema-invalid output | Successful transport followed by validation error/recovery |
-| Abnormal execution depth | Force nested planning or delegation | Topology depth outside the baseline envelope |
-| Fallback routing | Fail the primary model or tool | Error followed by a different provider/model/tool signature |
-| Terminal failure | Exhaust the allowed recovery budget | Failed root span with an attributable downstream failure path |
-
-Faults will be injected by the harness, not by modifying task logic. Each injection will have a unique ground-truth record that is unavailable to the analyzer.
-
-## 6. Instrumentation policy
-
-### Boundary-only rule
-
-Instrument reusable runtime boundaries:
+Instrumentation belongs only in reusable runtime adapters:
 
 - agent invocation;
-- model invocation;
-- tool execution;
-- retrieval;
-- workflow or delegation boundaries;
-- retry/fallback middleware when it exists as a shared runtime mechanism.
+- scripted model invocation;
+- tool invocation;
+- shared retry handling.
 
-Do not add spans solely to reveal scenario labels, detector targets, expected answers, or every internal `if`/loop in business logic. The experiment should fail honestly when a behavior leaves no observable boundary evidence.
+Do not instrument each application branch, loop body, or fault scenario. Do not place the scenario label, expected anomaly, or expected answer in analyzer-visible telemetry.
 
-### Signals
+The fault injector will create a separate ground-truth sidecar. This is the oracle used for scoring, not an additional telemetry stream.
 
-Traces are the primary signal. Metrics may summarize duration, errors, calls, and tokens. Structured logs may carry correlated fault-injector ground truth, but will be withheld from the telemetry-only analyzer.
+## 7. Evidence profiles
 
-### Core telemetry variables
+The same rich boundary trace will be projected into three progressively informative profiles before analysis. This avoids rerunning behavior merely to remove fields.
 
-| Dimension | Planned evidence |
+### P0 — Structural
+
+- trace ID, span ID, and parent span ID;
+- span name and kind;
+- start and end timestamps;
+- status and exception events.
+
+This approximates generic tracing with no GenAI-specific knowledge.
+
+### P1 — Standard GenAI
+
+P0 plus applicable standard OpenTelemetry GenAI fields:
+
+- operation name;
+- agent, model, provider, and tool identifiers;
+- input and output token usage;
+- error type.
+
+The implementation must pin and record the semantic-convention version because the GenAI conventions are still evolving.
+
+### P2 — Boundary enriched
+
+P1 plus a minimal documented lab namespace:
+
+- normalized tool-argument fingerprint;
+- logical operation ID;
+- attempt number;
+- runtime step number.
+
+These fields must describe runtime facts, not experiment labels. Ablations will show whether each one makes a detector artificially easy or provides genuinely necessary correlation.
+
+### Oracle — Withheld ground truth
+
+The oracle is not an evidence profile and is never passed to the analyzer. It contains the exact operation graph, injected condition, activation point, attempts, expected answer, and known unnecessary operations.
+
+## 8. Telemetry contract
+
+The implementation will prefer OpenTelemetry semantic conventions and use `agent_observability_lab.*` only where no suitable standard field exists.
+
+| Dimension | Required evidence |
 | --- | --- |
-| Identity | service, agent, operation, model, provider, and tool identifiers |
-| Correlation | trace ID, span ID, parent span ID, run ID, task ID |
-| Topology | span parentage, links, start/end timestamps |
-| Model cost | input, output, cached, and reasoning-token counts when available |
-| Tool behavior | tool name/type, normalized argument fingerprint, attempt number |
-| Reliability | status, exception event, error type, timeout/cancellation indicator |
-| Retry/fallback | logical operation ID, attempt number, retry reason, destination change |
-| Performance | span duration, end-to-end latency, critical-path contribution |
-| Outcome | root status plus a separate task-evaluator result |
-| Environment | code revision, instrumentation version, semantic-convention version, seed |
+| Identity | service, operation, model, provider, tool |
+| Correlation | trace/span parentage and an opaque run ID that does not encode the condition |
+| Topology | start/end timestamps and parent-child edges |
+| Cost | input/output tokens and call counts |
+| Reliability | status, exception, error type |
+| Retry | logical operation, attempt, retry outcome |
+| Duplication | normalized argument fingerprint |
+| Reproducibility | code revision, schema version, seed |
 
-Standard OpenTelemetry and GenAI semantic-convention attributes will be preferred. Lab-specific attributes will use a documented `agent_observability_lab.*` namespace. Because the GenAI conventions are currently evolving, every dataset must pin and record the convention version it uses.
+Prompt text, model output, raw tool arguments, hidden reasoning, and secrets will not be exported. Synthetic fixtures will be safe to publish, but content capture remains off to preserve the study's boundary.
 
-### Content and privacy policy
+## 9. Reconstruction tasks
 
-- Do not export hidden chain-of-thought.
-- Keep prompts, responses, and tool payloads off by default.
-- Use stable hashes or normalized fingerprints for arguments when duplication detection does not require raw values.
-- Use synthetic tasks and fixtures in the public dataset.
-- Document any opt-in content capture and scrub secrets before export.
+The blind analyzer receives one evidence profile at a time and performs four tasks.
 
-## 7. Ground truth
+### A. Reconstruct the operation sequence
 
-The harness will produce a sidecar record for each run containing:
+Recover the ordered agent, model, retrieval, and tool operations.
 
-- intended operation graph;
-- actual internal operation graph;
-- injected fault and exact activation point;
-- attempts, retry decisions, and fallback decisions;
-- expected task outcome;
-- known inefficiencies introduced by the condition.
+### B. Reconstruct topology
 
-Ground truth must use separate storage and a separate schema from exported telemetry. The analyzer must not read scenario names, injection IDs, expected detector labels, or business-logic events.
+Recover parent-child edges, terminal status, maximum depth, and critical path.
 
-## 8. Reconstruction tasks
+### C. Reconstruct resources
 
-The telemetry-only analyzer will attempt five tasks.
+Compute model calls, tool calls, token totals, errors, attempts, and end-to-end latency.
 
-### A. Operation sequence reconstruction
+### D. Diagnose the condition
 
-Recover the ordered sequence of agent, model, retrieval, and tool operations.
+Emit zero or more evidence-backed findings:
 
-### B. Execution graph reconstruction
+- `tool_failure`;
+- `retry_loop`;
+- `candidate_redundant_tool_use`;
+- `excessive_execution_path`.
 
-Recover parent-child edges, parallel branches, critical path, and maximum depth.
+Every finding must name the implicated spans and the rule or baseline comparison that triggered it.
 
-### C. Resource reconstruction
+## 10. Initial explainable detectors
 
-Compute model/tool call counts, token totals, latency totals, critical-path latency, error counts, and retry counts.
+Use simple rules before considering learned anomaly detection.
 
-### D. Failure attribution
+| Finding | Initial rule |
+| --- | --- |
+| Tool failure | Tool span has error status or exception evidence |
+| Retry loop | Repeated logical operation or matching signature fails until budget exhaustion |
+| Candidate redundant call | Multiple successful calls share a tool and argument fingerprint with no intervening input dependency |
+| Excessive path | Depth, model-call count, or tokens exceed the task's baseline envelope |
 
-Identify the failing component, determine whether recovery occurred, and associate repeated attempts with one logical operation.
+P0 may be unable to distinguish some repeated operations. That is an expected and useful result. The report should say which evidence is missing instead of guessing.
 
-### E. Behavioral anomaly inference
+## 11. Scoring
 
-Classify retry loops, redundant tool usage, expensive reasoning paths, tool failures, fallback behavior, and abnormal depth.
+### Structural metrics
 
-The first detector set will use explainable rules derived from baseline distributions. Learned detectors may be added later, but must be evaluated against the same held-out tasks and ground truth.
-
-## 9. Evaluation metrics
-
-### Reconstruction fidelity
-
-- operation identity precision, recall, and F1;
-- sequence edit distance;
+- exact operation-sequence match rate;
 - parent-child edge precision, recall, and F1;
 - maximum-depth absolute error;
-- parallelism and critical-path reconstruction error;
-- relative error for latency, call counts, and token totals.
+- exact call-count and error-count match rate;
+- relative error for duration and token totals.
 
-### Anomaly detection
+### Diagnostic metrics
 
 - per-class precision, recall, and F1;
-- macro and micro F1;
-- false-positive rate on baseline runs;
-- detection latency from the first observable symptom;
-- confidence calibration where detectors emit probabilities.
+- macro F1 across the four findings;
+- number of baseline false positives;
+- attribution accuracy for the implicated span or subgraph.
 
-### Diagnostic usefulness
+### Instrumentation comparison
 
-A diagnosis counts as actionable only if it identifies:
+Report every metric separately for P0, P1, and P2, then show the marginal improvement from each evidence profile. The main result is a capability map, not one aggregate score.
 
-1. the anomaly class;
-2. the implicated operation or subgraph;
-3. supporting telemetry evidence;
-4. a bounded mitigation that does not require hidden reasoning content.
+### Provisional v0 success criteria
 
-### Instrumentation cost
+- at least 95% exact operation-sequence reconstruction under P2;
+- at least 0.90 topology-edge F1 under P2;
+- at least 0.80 diagnostic macro F1 under P2;
+- no more than one false diagnosis across the 15 baseline runs;
+- complete local execution in under five minutes;
+- no analyzer access to ground truth or scenario labels.
 
-- runtime overhead;
-- trace volume per run;
-- attribute cardinality;
-- engineering touchpoints required to instrument a new agent/tool;
-- percentage of application functions with manual instrumentation.
+These thresholds indicate whether the lab is ready to expand. They do not establish production validity, and the report must include raw counts alongside rates.
 
-## 10. Analysis protocol
+## 12. Experiment protocol
 
-1. Build thresholds using training tasks from healthy baseline runs only.
-2. Freeze detector rules and thresholds before evaluating fault conditions.
-3. Evaluate on held-out task instances and seeds.
-4. Report results by task family, failure mode, and runtime phase.
-5. Publish confusion matrices and failure examples, including false positives and false negatives.
-6. Run ablations that remove token attributes, argument fingerprints, retry metadata, or parentage to measure each signal's contribution.
-7. Repeat selected analyses with sampled or incomplete traces to test production realism.
+1. Generate versioned task fixtures and expected answers.
+2. Generate the sealed condition schedule and ground-truth schema.
+3. Run all 75 cases through the same runtime with a fixed seed schedule.
+4. Export one local JSONL trace record per run or one clearly indexed combined file.
+5. Validate that traces contain no scenario labels or prohibited content.
+6. Derive P0, P1, and P2 projections from each trace.
+7. Run the analyzer independently on each profile.
+8. Score the inferred graph, resources, and findings against the oracle.
+9. Inspect and document every false positive and false negative.
+10. Generate a Markdown summary and machine-readable JSON report.
 
-Avoid using condition-specific thresholds. A detector that merely recognizes the synthetic harness does not answer the research question.
+The implementation should include automated tests that assert the analyzer cannot load oracle files and that scenario labels do not appear in exported spans.
 
-## 11. Decision criteria
+## 13. Planned local interface
 
-The primary question will be answered **yes, within scope** only if all of the following hold on held-out runs:
+The exact CLI may change during implementation, but v0 should target a workflow this small:
 
-- operation and topology reconstruction each achieve at least 0.90 F1;
-- targeted anomaly detection achieves at least 0.80 macro F1;
-- baseline false-positive rate is at most 5%;
-- median telemetry overhead is below 10%;
-- results remain useful with content capture disabled;
-- findings reproduce across at least two task families and both runtime phases.
+```shell
+# Planned commands; not implemented yet.
+python -m agent_observability_lab run --all
+python -m agent_observability_lab analyze --all-profiles
+```
 
-If structural metrics pass but anomaly metrics do not, the conclusion will be that telemetry reconstructs execution but does not reliably explain inefficiency. If only content-enabled traces pass, the conclusion will explicitly reject the boundary-only hypothesis.
+Expected local outputs:
 
-These thresholds are initial preregistration targets and may be revised once after the pilot, before test-set evaluation, with the change documented.
+```text
+artifacts/
+├── traces.jsonl
+├── ground_truth.jsonl
+└── report/
+    ├── results.json
+    └── summary.md
+```
 
-## 12. Follow-up: observability as a runtime feedback signal
+Trace and ground-truth files must remain physically and logically separate.
 
-Only detectors that meet the primary-study criteria will enter the feedback experiment.
-
-Candidate bounded interventions:
-
-- stop an operation after a detected retry budget is exhausted;
-- serve a cached result after duplicate deterministic tool calls;
-- switch to a fallback tool or model after attributable failure;
-- cap agent depth or model-call budget;
-- request human review instead of continuing an abnormal path.
-
-Evaluate feedback in three modes:
-
-1. **offline recommendation** — emit a proposed action without changing execution;
-2. **shadow mode** — compare the proposed action with what the runtime actually did;
-3. **guarded intervention** — allow only reversible, policy-bounded actions.
-
-Compare task success, total latency, tokens, tool calls, and new failure rate against a no-feedback control. The feedback question will be answered positively only if interventions reduce the targeted waste or failure rate without a statistically or practically meaningful reduction in task success.
-
-## 13. Planned repository structure
+## 14. Planned repository structure
 
 ```text
 Agent-Observability-Lab/
 ├── README.md
 ├── EXPERIMENT_PLAN.md
-├── docs/
-│   ├── telemetry-contract.md
-│   ├── dataset-card.md
-│   └── results-template.md
-├── src/
-│   ├── runtime/
-│   ├── fault_injection/
-│   ├── telemetry/
-│   └── analysis/
-├── tasks/
-├── configs/
+├── src/agent_observability_lab/
+│   ├── runtime.py
+│   ├── tasks.py
+│   ├── faults.py
+│   ├── telemetry.py
+│   ├── projections.py
+│   ├── analyzer.py
+│   └── cli.py
+├── fixtures/
 ├── tests/
-├── artifacts/
-│   ├── traces/
-│   ├── ground_truth/
-│   └── reports/
-└── notebooks/
+└── artifacts/
 ```
 
-Only the planning documents are part of the initial repository. The remaining paths describe later implementation.
+Only planning documents exist initially. This layout describes the later local implementation.
 
-## 14. Milestones
+## 15. Result format
 
-### M0 — Protocol freeze
+The final v0 report should answer each question separately.
 
-- Review the research claims and decision criteria.
-- Pin semantic-convention and telemetry schema versions.
-- Define task fixtures, ground-truth schema, and privacy policy.
+| Question | Required result |
+| --- | --- |
+| What operations occurred? | Sequence reconstruction by evidence profile |
+| How were they connected? | Topology reconstruction by evidence profile |
+| Where did failure occur? | Detection and span attribution |
+| Was retry behavior abnormal? | Loop detection and supporting evidence |
+| Was work inefficient? | Baseline-relative candidate finding, with caveats |
+| Why did the model choose an action? | Explicitly marked not recoverable from this telemetry |
+| Was the answer correct? | Reported from the separate evaluator, not inferred from traces |
 
-### M1 — Deterministic baseline
+This prevents a strong result in one dimension from being presented as proof that all agent semantics are observable.
 
-- Implement one runtime, five task families, and boundary-only telemetry.
-- Validate trace completeness and measure instrumentation overhead.
+## 16. Deferred work
 
-### M2 — Fault matrix
+The following are intentionally outside local v0:
 
-- Implement all fault conditions independently.
-- Prove that each condition preserves task inputs and records sealed ground truth.
+- hosted or local language models;
+- multiple agent frameworks;
+- distributed context propagation;
+- trace sampling and dropped spans;
+- asynchronous and parallel tool execution;
+- an observability UI or collector stack;
+- learned anomaly detectors;
+- production workloads;
+- runtime intervention.
 
-### M3 — Blind reconstruction
+The first expansion after v0 should test incomplete telemetry and async context propagation. A real-model replication should follow only after the deterministic protocol is trustworthy.
 
-- Build the telemetry-only analyzer.
-- Freeze rules and thresholds after baseline calibration.
+## 17. Follow-up: telemetry as feedback
 
-### M4 — Evaluation and ablation
+The feedback question remains a separate experiment. Only a v0 detector that meets its success criteria should become a candidate signal.
 
-- Run held-out experiments.
-- Score reconstruction and anomaly detection.
-- Test missing attributes, trace sampling, and incomplete data.
+The progression should be:
 
-### M5 — Real-model replication
+1. offline recommendation;
+2. shadow-mode recommendation compared with actual runtime behavior;
+3. bounded local intervention, such as stopping after a retry or depth budget.
 
-- Repeat the selected experiment subset with a real model provider.
-- Quantify drift from the deterministic phase.
+The follow-up must compare task success, latency, tokens, and failure rate against a no-feedback control. It should not assume that a correct diagnosis automatically implies a safe intervention.
 
-### M6 — Feedback study
+## 18. Definition of done for v0
 
-- Test qualified signals offline, in shadow mode, then under bounded intervention.
-- Publish the final answer and limitations.
-
-## 15. Risks and limitations
-
-- Semantic conventions for GenAI are evolving and may require migration.
-- Provider SDKs may expose different token and retry details.
-- Parent-child spans show causality as instrumented, not necessarily model intent.
-- Duplicate calls can be legitimate; argument identity alone is insufficient without dependency context.
-- Latency and token thresholds may not transfer across models, tools, or environments.
-- Trace sampling can hide precisely the operations needed for diagnosis.
-- Synthetic failures may be easier to detect than organic production failures.
-- Task success and answer quality require evaluation signals beyond observability.
-
-## 16. Deliverables
-
-- versioned instrumentation and ground-truth contracts;
-- reproducible experiment configurations;
-- synthetic and real-runtime trace datasets where licensing permits;
-- telemetry-only analyzer with evidence for every diagnosis;
-- benchmark report with ablations and failure cases;
-- explicit answer to the primary and follow-up questions;
-- recommendations for minimum viable agent telemetry.
-
-## 17. Definition of done
-
-The project is complete when another researcher can reproduce the runs, score the analyzer against sealed ground truth, audit every reported inference back to telemetry evidence, and understand both the successful and failed reconstruction cases without access to hidden chain-of-thought.
+Local v0 is complete when another person can clone the repository, run the entire experiment on a laptop without credentials or external services, reproduce the machine-readable report, audit every diagnosis back to specific spans, and see exactly which execution facts become recoverable at P0, P1, and P2.
