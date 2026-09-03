@@ -293,15 +293,16 @@ docker compose up -d
 python -m agent_observability_lab run --integration --model-provider <provider>
 ```
 
-Expected local outputs:
+Expected local outputs for `<experiment-id>`:
 
 ```text
-artifacts/
-├── traces.jsonl
-├── ground_truth.jsonl
-└── report/
-    ├── results.json
-    └── summary.md
+data/
+├── raw/<experiment-id>/traces.jsonl
+├── oracle/<experiment-id>/ground-truth.jsonl
+└── derived/<experiment-id>/{p0,p1,p2}/
+reports/<experiment-id>/
+├── results.json
+└── summary.md
 ```
 
 Trace and ground-truth files must remain physically and logically separate.
@@ -312,6 +313,21 @@ Trace and ground-truth files must remain physically and logically separate.
 Agent-Observability-Lab/
 ├── README.md
 ├── EXPERIMENT_PLAN.md
+├── LEARNING_GUIDE.md
+├── DATA_MANAGEMENT.md
+├── configs/
+├── schemas/
+├── experiments/
+│   └── registry.csv
+├── data/
+│   ├── raw/
+│   ├── oracle/
+│   ├── derived/
+│   └── published/
+├── reports/
+├── lab-notes/
+│   ├── EXPERIMENT_LOG.md
+│   └── DECISIONS.md
 ├── src/agent_observability_lab/
 │   ├── runtime.py
 │   ├── tasks.py
@@ -323,11 +339,10 @@ Agent-Observability-Lab/
 ├── fixtures/
 ├── compose.yaml
 ├── .env.example
-├── tests/
-└── artifacts/
+└── tests/
 ```
 
-Only planning documents exist initially. This layout describes the later local implementation.
+The data-management documents, project-record templates, and empty registry exist initially. The remaining paths describe the later local implementation and generated outputs.
 
 ## 15. Result format
 

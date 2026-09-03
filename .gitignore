@@ -1,0 +1,15 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+.pytest_cache/
+
+# Immutable working evidence is published deliberately, not committed by default.
+data/raw/
+data/oracle/
+data/derived/
+
+# Compatibility with the earlier artifact layout.
+artifacts/
