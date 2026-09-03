@@ -8,6 +8,7 @@ import uuid
 from pathlib import Path
 
 from .analyzer import analyze
+from .feedback import RetryBudgetFeedback
 from .projections import EvidenceProfile, project_file
 from .oracle import build_oracle
 from .matrix import run_matrix
@@ -32,6 +33,12 @@ def main() -> None:
         "--condition",
         choices=[condition.value for condition in Condition],
         default=Condition.BASELINE.value,
+    )
+    run_parser.add_argument(
+        "--feedback",
+        choices=["none", "retry_budget"],
+        default="none",
+        help="optional evidence-driven runtime policy",
     )
 
     analyze_parser = subparsers.add_parser("analyze", help="analyze telemetry only")
@@ -68,7 +75,8 @@ def main() -> None:
                 "document-answer-v1": DocumentTask,
                 "two-option-comparison-v1": ComparisonTask,
             }[args.task]()
-            result = DeterministicAgent(session.tracer).run(
+            feedback = RetryBudgetFeedback() if args.feedback == "retry_budget" else None
+            result = DeterministicAgent(session.tracer, feedback=feedback).run(
                 task, Condition(args.condition), run_id
             )
             print(json.dumps(result.__dict__, default=str, sort_keys=True))

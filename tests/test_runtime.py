@@ -1,6 +1,7 @@
 import json
 
 from agent_observability_lab.runtime import Condition, DeterministicAgent
+from agent_observability_lab.feedback import RetryBudgetFeedback
 from agent_observability_lab.tasks import ComparisonTask, DocumentTask, InvoiceTask
 from agent_observability_lab.telemetry import TelemetrySession
 
@@ -95,3 +96,20 @@ def test_comparison_task_uses_two_lookup_boundaries(tmp_path):
         if record["name"] == "execute_tool local_lookup"
     ]
     assert lookup_ids == ["option-a-v1", "option-b-v1"]
+
+
+def test_retry_feedback_stops_before_third_failed_attempt(tmp_path):
+    output = tmp_path / "feedback.jsonl"
+    session = TelemetrySession(output)
+    try:
+        result = DeterministicAgent(
+            session.tracer, feedback=RetryBudgetFeedback(failure_limit=2)
+        ).run(InvoiceTask(), Condition.RETRY_LOOP, "feedback-run")
+    finally:
+        session.shutdown()
+    records = [json.loads(line) for line in output.read_text().splitlines()]
+    tools = [record for record in records if record["name"] == "execute_tool calculator"]
+    assert result.answer is None
+    assert len(tools) == 2
+    root = next(record for record in records if record["name"].startswith("invoke_agent"))
+    assert root["attributes"]["agent_observability_lab.feedback_action"] == "stop_retry_loop"

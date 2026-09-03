@@ -1,0 +1,32 @@
+[
+  {
+    "duration_ms": 10.4,
+    "feedback_action": null,
+    "findings": [
+      "tool_failure",
+      "tool_failure",
+      "tool_failure",
+      "retry_loop"
+    ],
+    "mode": "feedback-disabled",
+    "model_call_count": 4,
+    "outcome": "failed",
+    "output_tokens": 84,
+    "root_status": "ERROR",
+    "tool_call_count": 3
+  },
+  {
+    "duration_ms": 6.285,
+    "feedback_action": "stop_retry_loop",
+    "findings": [
+      "tool_failure",
+      "tool_failure"
+    ],
+    "mode": "feedback-enabled",
+    "model_call_count": 2,
+    "outcome": "failed",
+    "output_tokens": 44,
+    "root_status": "ERROR",
+    "tool_call_count": 2
+  }
+]

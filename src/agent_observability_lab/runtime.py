@@ -11,6 +11,7 @@ from enum import StrEnum
 from opentelemetry import trace
 from opentelemetry.trace import SpanKind, Status, StatusCode
 
+from .feedback import RetryBudgetFeedback
 from .tasks import ComparisonTask, DocumentTask, InvoiceTask
 
 
@@ -34,6 +35,10 @@ class ToolExecutionError(RuntimeError):
     """A generic tool failure; fault-condition details stay in the oracle."""
 
 
+class FeedbackIntervention(ToolExecutionError):
+    """The runtime stopped because an evidence-driven policy intervened."""
+
+
 def _fingerprint(arguments: dict[str, object]) -> str:
     payload = json.dumps(arguments, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
@@ -42,8 +47,9 @@ def _fingerprint(arguments: dict[str, object]) -> str:
 class DeterministicAgent:
     """A tiny model/tool loop instrumented at reusable boundaries only."""
 
-    def __init__(self, tracer: trace.Tracer) -> None:
+    def __init__(self, tracer: trace.Tracer, feedback: RetryBudgetFeedback | None = None) -> None:
         self.tracer = tracer
+        self.feedback = feedback
         self._failed_once: set[str] = set()
 
     def _model_call(self, phase: str, run_id: str, output_tokens: int = 24) -> None:
@@ -154,6 +160,8 @@ class DeterministicAgent:
                 try:
                     self._calculator(task, run_id, attempt=attempt, should_fail=True)
                 except ToolExecutionError:
+                    if self.feedback and self.feedback.observe_tool_failure("invoice-total"):
+                        raise FeedbackIntervention("feedback stopped retry loop")
                     self._model_call("retry-decision", run_id, output_tokens=20)
             raise ToolExecutionError("retry budget exhausted")
 
@@ -189,6 +197,8 @@ class DeterministicAgent:
                 try:
                     self._retrieval(task, run_id, attempt=attempt, should_fail=True)
                 except ToolExecutionError:
+                    if self.feedback and self.feedback.observe_tool_failure("document-retrieval"):
+                        raise FeedbackIntervention("feedback stopped retry loop")
                     self._model_call("retry-decision", run_id, output_tokens=20)
             raise ToolExecutionError("retry budget exhausted")
 
@@ -294,6 +304,8 @@ class DeterministicAgent:
                         logical_operation_id="comparison-option-a",
                     )
                 except ToolExecutionError:
+                    if self.feedback and self.feedback.observe_tool_failure("comparison-option-a"):
+                        raise FeedbackIntervention("feedback stopped retry loop")
                     self._model_call("retry-decision", run_id, output_tokens=20)
             raise ToolExecutionError("retry budget exhausted")
 
@@ -364,7 +376,14 @@ class DeterministicAgent:
             except ToolExecutionError as error:
                 root.set_status(Status(StatusCode.ERROR, str(error)))
                 root.set_attribute("agent_observability_lab.task_outcome", "failed")
-                root.set_attribute("error.type", "retry_budget_exhausted")
+                root.set_attribute(
+                    "error.type",
+                    "feedback_retry_stop"
+                    if isinstance(error, FeedbackIntervention)
+                    else "retry_budget_exhausted",
+                )
+                if isinstance(error, FeedbackIntervention):
+                    root.set_attribute("agent_observability_lab.feedback_action", "stop_retry_loop")
                 answer = None
             else:
                 root.set_attribute("agent_observability_lab.task_outcome", "success")
