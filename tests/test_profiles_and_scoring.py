@@ -2,7 +2,7 @@ import json
 
 from agent_observability_lab.analyzer import analyze
 from agent_observability_lab.projections import EvidenceProfile, project_file
-from agent_observability_lab.oracle import build_baseline_oracle
+from agent_observability_lab.oracle import build_baseline_oracle, build_oracle
 from agent_observability_lab.scoring import score_report
 from agent_observability_lab.runtime import Condition, DeterministicAgent
 from agent_observability_lab.tasks import InvoiceTask
@@ -88,3 +88,18 @@ def test_baseline_oracle_matches_invoice_graph(tmp_path):
         {"parent_index": 0, "child_index": 2},
         {"parent_index": 0, "child_index": 3},
     ]
+
+
+def test_transient_oracle_captures_recovery_attempts(tmp_path):
+    output = tmp_path / "transient.jsonl"
+    session = TelemetrySession(output)
+    try:
+        DeterministicAgent(session.tracer).run(
+            InvoiceTask(), Condition.TRANSIENT_TOOL_FAILURE, "opaque-run"
+        )
+    finally:
+        session.shutdown()
+
+    oracle = build_oracle(output, "invoice-total-v1", "transient_tool_failure")
+    assert oracle["expected_findings"] == ["tool_failure"]
+    assert oracle["expected_attempt_numbers"] == [1, 2]

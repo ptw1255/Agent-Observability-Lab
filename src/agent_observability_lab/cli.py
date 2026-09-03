@@ -9,7 +9,7 @@ from pathlib import Path
 
 from .analyzer import analyze
 from .projections import EvidenceProfile, project_file
-from .oracle import build_baseline_oracle
+from .oracle import build_oracle
 from .runtime import Condition, DeterministicAgent
 from .scoring import score_reports
 from .tasks import ComparisonTask, DocumentTask, InvoiceTask
@@ -50,6 +50,7 @@ def main() -> None:
     oracle_parser = subparsers.add_parser("oracle", help="build one sealed baseline oracle")
     oracle_parser.add_argument("--input", type=Path, required=True)
     oracle_parser.add_argument("--task", required=True)
+    oracle_parser.add_argument("--condition", default="baseline")
     oracle_parser.add_argument("--output", type=Path, required=True)
 
     args = parser.parse_args()
@@ -92,6 +93,6 @@ def main() -> None:
         else:
             print(rendered)
     else:
-        oracle = build_baseline_oracle(args.input, args.task)
+        oracle = build_oracle(args.input, args.task, args.condition)
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(oracle, indent=2, sort_keys=True) + "\n", encoding="utf-8")

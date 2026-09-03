@@ -50,9 +50,25 @@ BASELINE_RESOURCES = {
     },
 }
 
+TRANSIENT_INVOICE_GRAPH = [
+    "invoke_agent deterministic-agent",
+    "chat scripted-model",
+    "execute_tool calculator",
+    "chat scripted-model",
+    "execute_tool calculator",
+    "chat scripted-model",
+]
 
-def build_baseline_oracle(trace_path: Path, task_id: str) -> dict[str, object]:
-    """Build one baseline oracle from a raw trace and a known task graph."""
+TRANSIENT_INVOICE_RESOURCES = {
+    "expected_model_call_count": 3,
+    "expected_tool_call_count": 2,
+    "expected_input_tokens": 96,
+    "expected_output_tokens": 58,
+}
+
+
+def build_oracle(trace_path: Path, task_id: str, condition: str) -> dict[str, object]:
+    """Build one oracle from a raw trace and a known deterministic task graph."""
     if task_id not in BASELINE_GRAPHS:
         raise ValueError(f"unknown task graph: {task_id}")
     records = [
@@ -70,18 +86,34 @@ def build_baseline_oracle(trace_path: Path, task_id: str) -> dict[str, object]:
     }
     if len(run_ids) != 1:
         raise ValueError("oracle builder expects exactly one opaque run ID")
-    expected_sequence = BASELINE_GRAPHS[task_id]
+    if condition == "baseline":
+        expected_sequence = BASELINE_GRAPHS[task_id]
+        resources = BASELINE_RESOURCES[task_id]
+        expected_findings = []
+        expected_attempt_numbers = [1]
+    elif task_id == "invoice-total-v1" and condition == "transient_tool_failure":
+        expected_sequence = TRANSIENT_INVOICE_GRAPH
+        resources = TRANSIENT_INVOICE_RESOURCES
+        expected_findings = ["tool_failure"]
+        expected_attempt_numbers = [1, 2]
+    else:
+        raise ValueError(f"oracle graph not yet defined: {task_id}/{condition}")
     return {
         "trace_id": next(iter(trace_ids)),
         "run_id": next(iter(run_ids)),
         "task_id": task_id,
-        "condition": "baseline",
+        "condition": condition,
         "expected_sequence": expected_sequence,
         "expected_parent_edges": [
             {"parent_index": 0, "child_index": index}
             for index in range(1, len(expected_sequence))
         ],
-        "expected_findings": [],
+        "expected_findings": expected_findings,
         "expected_outcome": "success",
-        **BASELINE_RESOURCES[task_id],
+        "expected_attempt_numbers": expected_attempt_numbers,
+        **resources,
     }
+
+
+def build_baseline_oracle(trace_path: Path, task_id: str) -> dict[str, object]:
+    return build_oracle(trace_path, task_id, "baseline")
