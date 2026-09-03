@@ -1,22 +1,42 @@
 # Journal.3 — Two-option comparison task
 
-## What changed
+## What we did
 
-- Added `ComparisonTask` with expected answer `option-a-v1`.
-- Added versioned local fixtures for options A and B.
-- Added deterministic `local_lookup` operations.
-- Reused the calculator boundary for the final comparison.
-- Applied all five execution conditions to the multi-tool task.
-- Added task selection to the CLI.
-- Added tests for operation order, distinct lookup identities, and duplicate-call detection.
+We added `ComparisonTask` with two local option fixtures:
 
-Implementation commit: `56ff9ac`.
+- option A delivered cost: `120 + 10 = 130`;
+- option B delivered cost: `115 + 25 = 140`.
+
+The expected answer is `option-a-v1`. The healthy execution path is:
+
+```text
+invoke_agent → chat plan → local_lookup A → local_lookup B → calculator → chat finalize
+```
+
+The five conditions now run against this multi-tool graph. The redundant condition repeats the lookup for option B with the same normalized arguments. The baseline calls option A and option B once each.
+
+We added tests for task selection, operation order, data-source identity, distinct argument fingerprints, and duplicate-call detection.
+
+Implementation commit: `8e4ecfa`.
+
+## Concept to know
+
+Repeated calls do not automatically mean redundant work. A healthy comparison requires two lookup calls. The analyzer needs operation identity and argument evidence before it can flag a repeated call as a candidate duplicate.
+
+The comparison task gives us two cases:
+
+```text
+healthy:   lookup A + lookup B
+redundant: lookup A + lookup B + lookup B
+```
+
+The topology and fingerprints provide the observable difference. The word `candidate` remains important because telemetry alone cannot prove that a repeated successful call had zero semantic value in every real agent.
 
 ## Why we did it
 
-The invoice task has one calculator call. The document task has one retrieval call. The comparison task has two required lookups followed by a calculation.
+The first two tasks contain one main tool call. They cannot test whether the analyzer understands a required multi-tool path.
 
-That healthy multi-tool path gives the analyzer a control case for redundancy detection. Two tool calls can be required even when they are close together in the trace.
+This task creates a legitimate reason for multiple tool calls. That establishes the control case needed for redundancy detection and moves the workload closer to a real agent workflow.
 
 ## Result at this checkpoint
 
@@ -26,10 +46,10 @@ The baseline comparison trace contains two different lookup data-source IDs and 
 
 The redundant condition repeats option B with the same normalized arguments. The analyzer reports `candidate_redundant_tool_use`.
 
-All five conditions run through the comparison task, and the telemetry tests keep the condition labels out of analyzer input.
+All five conditions run through the comparison task, and condition labels remain absent from analyzer input.
 
-This completes the three-task deterministic workload. It does not provide reconstruction scores yet.
+This completes the three-task deterministic workload. Reconstruction scores have not been generated yet.
 
 ## Next step
 
-Define the sealed oracle schema, telemetry schema, and P0/P1/P2 projections. Then score operation sequences, topology, resource totals, and findings across the three tasks.
+Define the telemetry schema, sealed oracle schema, P0/P1/P2 projections, and scoring contract.

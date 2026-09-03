@@ -1,45 +1,54 @@
 # Journal.5 — First profile comparison
 
-## What changed
+## What we did
 
-- Generated one baseline invoice trace.
-- Built a sealed oracle containing the expected sequence, parent edges, and empty finding set.
-- Projected the same raw trace into P0, P1, and P2.
-- Ran the telemetry-only analyzer on each projection.
-- Scored each report against the oracle.
-- Published the raw trace, projections, oracle, analyses, and scores under `data/published/local-v0-profile-comparison/`.
+We ran one baseline invoice case through the complete pipeline:
 
-Implementation commit: `07bb13f`.
+```text
+raw trace → oracle → P0/P1/P2 → analyzer → scoring
+```
+
+The oracle records the healthy operation sequence, parent edges, empty finding set, expected model/tool counts, and expected token totals. The same raw trace feeds all three projections.
+
+We published the trace, projections, oracle, analyzer outputs, and scores under `data/published/local-v0-profile-comparison/`.
+
+Implementation commit: `0012bc9`.
+
+## Concept to know
+
+An oracle is the known answer used to score an inference. It is separate from telemetry because putting the condition or expected finding into the trace would make the test circular.
+
+The baseline run also shows why a healthy case is necessary. A detector can report zero findings on a healthy trace, but that result says little about anomaly detection. The healthy case primarily tests sequence, topology, and resource reconstruction.
 
 ## Why we did it
 
-The schema, projection, and scoring utilities needed one end-to-end check before we generate the full dataset. Using one raw trace for all three profiles holds execution constant while changing the evidence available to the analyzer.
+The projection and scoring code needed one measured integration check before the full matrix. One raw trace projected three ways holds execution constant and isolates the evidence change.
 
-The baseline case also establishes the healthy sequence and resource totals for the invoice task.
+The baseline case gives us a reference sequence and resource total for the invoice task. Those values will support the next failure comparison.
 
 ## Result at this checkpoint
 
-The trace contains four spans in the reconstructed order:
+The reconstructed sequence was:
 
 ```text
 invoke_agent → chat plan → calculator → chat finalize
 ```
 
-All three profiles produced:
+P0, P1, and P2 each produced:
 
 - exact sequence match: `true`;
 - topology-edge F1: `1.0`;
 - model call count match: `true`;
 - tool call count match: `true`;
-- no predicted findings for the healthy run.
+- no predicted findings.
 
-P0 lost both token totals because it removes all attributes. P1 restored input and output token matches. P2 matched P1 for this case because the extra correlation fields were unnecessary for a healthy, non-repeated path.
+P0 lost input and output token totals because it removes attributes. P1 restored both totals. P2 matched P1 because this healthy path has no repeated operation that requires boundary correlation fields.
 
-This is a pipeline result for one baseline case. It shows that structure survives P0 and token accounting requires P1. It does not measure anomaly detection yet; the empty finding set makes that comparison vacuous.
+This is a one-run pipeline result. It shows that structure survives P0 and token accounting requires P1. It does not measure anomaly detection.
 
 ## Next step
 
-Run the transient tool-failure invoice case through P0, P1, and P2. Measure which profile can identify the failed calculator, the recovery path, and the two attempts. Record the comparison in Journal.6.
+Run the transient calculator-failure case through P0, P1, and P2. Compare failed-span detection, recovery-path reconstruction, and attempt attribution.
 
 ## Artifacts
 

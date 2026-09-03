@@ -1,36 +1,49 @@
 # Journal.4 — Telemetry profiles and scoring contract
 
-## What changed
+## What we did
 
-- Added P0, P1, and P2 evidence projections.
-- Added versioned telemetry, ground-truth, and result schema files.
-- Extended the analyzer with parent edges, depth, token totals, duration, and error counts.
-- Added sequence, topology-edge, and finding scoring functions.
-- Added CLI commands for `project` and `score`.
-- Added tests for field retention, field removal, score calculation, and scoreable analyzer output.
+We defined three views of one raw trace:
 
-Implementation commit: `382124f`.
+- P0 keeps structural fields: span names, IDs, parentage, timing, status, and events.
+- P1 adds standard GenAI fields such as model, provider, tool, operation, error type, and token usage.
+- P2 adds selected boundary fields such as argument fingerprint, logical operation ID, attempt number, and step number.
+
+We added JSON schemas for telemetry spans, ground truth, and scoring results. The analyzer now emits:
+
+- ordered operation sequence;
+- parent-child edges using sequence indexes;
+- model and tool call counts;
+- input and output token totals;
+- maximum depth;
+- duration and error count;
+- detector findings with implicated span IDs.
+
+The CLI can create a projection with `project` and score analyzer output with `score`. Eighteen tests cover field retention, field removal, and score calculation at this checkpoint.
+
+Implementation commit: `07bb13f`.
+
+## Concept to know
+
+P0, P1, and P2 are an ablation. The execution stays fixed while the evidence available to the analyzer changes.
+
+If P0 reconstructs topology and P1 restores token accounting, the result identifies the contribution of generic structure and standard GenAI attributes. If P2 improves anomaly attribution, the result identifies a custom boundary field that the runtime must carry.
+
+The oracle stores the expected graph and findings separately. The analyzer can see a projection. The scoring step can see both the analyzer report and oracle. This preserves the blind inference test.
 
 ## Why we did it
 
-The three tasks and five conditions provide controlled behavior. The profile contract defines which evidence the analyzer can see, and the scoring contract defines how its output will be compared with the oracle.
+The project needs to answer “how much telemetry is enough?” A single rich trace cannot answer that question. The profiles let us remove classes of fields without changing the underlying agent execution.
 
-The profile comparison must use one raw trace projected three ways. That keeps behavior constant while evidence changes.
+The scoring contract also turns qualitative trace inspection into repeatable measurements. A sequence match, parent-edge F1, and finding precision/recall can be compared across tasks and profiles.
 
 ## Result at this checkpoint
 
 Eighteen tests passed.
 
-The implementation now supports:
+P0, P1, and P2 projections can be generated from the same raw JSONL trace. The analyzer emits scoreable topology and resource fields. The scoring code compares exact sequence, topology edges, resource matches, and findings.
 
-- P0 with structural fields and no attributes;
-- P1 with standard GenAI attributes;
-- P2 with standard attributes plus selected boundary correlation fields;
-- machine-readable analyzer reports with sequence and parent-edge data;
-- scoring for exact sequence, topology-edge F1, and finding precision/recall.
-
-The full oracle-generation and 75-run scoring workflow is still pending. No reconstruction score has been produced from a real experiment dataset.
+The full oracle-generation and 75-run scoring workflow remains pending. No broad research conclusion exists at this checkpoint.
 
 ## Next step
 
-Create one sealed oracle record for a baseline invoice trace. Project that trace into P0, P1, and P2, run the analyzer on each profile, and record the first profile comparison in Journal.5.
+Generate one baseline invoice oracle, run the three projections, and record the first measured profile comparison.
