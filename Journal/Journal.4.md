@@ -1,34 +1,36 @@
 # Journal.4 — Telemetry profiles and scoring contract
 
-## What will change
+## What changed
 
-Define the data contracts that turn the three-task workload into a scored experiment:
+- Added P0, P1, and P2 evidence projections.
+- Added versioned telemetry, ground-truth, and result schema files.
+- Extended the analyzer with parent edges, depth, token totals, duration, and error counts.
+- Added sequence, topology-edge, and finding scoring functions.
+- Added CLI commands for `project` and `score`.
+- Added tests for field retention, field removal, score calculation, and scoreable analyzer output.
 
-- raw span record schema;
-- sealed ground-truth record schema;
-- P0 structural projection;
-- P1 standard GenAI projection;
-- P2 boundary-enriched projection;
-- analyzer result schema;
-- experiment manifest and run registry fields.
+Implementation commit: `382124f`.
 
-## Why we are doing it
+## Why we did it
 
-The runtime now produces controlled behavior for three task shapes. The next question is how much of each behavior survives when telemetry fields are removed or restricted.
+The three tasks and five conditions provide controlled behavior. The profile contract defines which evidence the analyzer can see, and the scoring contract defines how its output will be compared with the oracle.
 
-The profile definitions must be frozen before scoring. The oracle must remain unavailable to the analyzer.
+The profile comparison must use one raw trace projected three ways. That keeps behavior constant while evidence changes.
 
 ## Result at this checkpoint
 
-No implementation result yet. This is the next protocol task.
+Eighteen tests passed.
 
-The work is ready to close when each projection can be generated from one raw trace, the oracle remains separate, and the analyzer emits machine-readable findings with span evidence.
+The implementation now supports:
+
+- P0 with structural fields and no attributes;
+- P1 with standard GenAI attributes;
+- P2 with standard attributes plus selected boundary correlation fields;
+- machine-readable analyzer reports with sequence and parent-edge data;
+- scoring for exact sequence, topology-edge F1, and finding precision/recall.
+
+The full oracle-generation and 75-run scoring workflow is still pending. No reconstruction score has been produced from a real experiment dataset.
 
 ## Next step
 
-- Add versioned JSON schemas.
-- Define allowed fields for P0, P1, and P2.
-- Define the ground-truth operation graph format.
-- Add projection tests that verify fields are removed or retained correctly.
-- Add scoring for sequence and parent-edge reconstruction.
-- Record the first profile comparison in `Journal.5`.
+Create one sealed oracle record for a baseline invoice trace. Project that trace into P0, P1, and P2, run the analyzer on each profile, and record the first profile comparison in Journal.5.

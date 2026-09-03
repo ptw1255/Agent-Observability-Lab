@@ -8,7 +8,9 @@ import uuid
 from pathlib import Path
 
 from .analyzer import analyze
+from .projections import EvidenceProfile, project_file
 from .runtime import Condition, DeterministicAgent
+from .scoring import score_reports
 from .tasks import ComparisonTask, DocumentTask, InvoiceTask
 from .telemetry import TelemetrySession
 
@@ -33,6 +35,16 @@ def main() -> None:
     analyze_parser = subparsers.add_parser("analyze", help="analyze telemetry only")
     analyze_parser.add_argument("--input", type=Path, required=True)
 
+    project_parser = subparsers.add_parser("project", help="create a restricted evidence profile")
+    project_parser.add_argument("--input", type=Path, required=True)
+    project_parser.add_argument("--output", type=Path, required=True)
+    project_parser.add_argument("--profile", choices=[profile.value for profile in EvidenceProfile], required=True)
+
+    score_parser = subparsers.add_parser("score", help="score analyzer output against an oracle")
+    score_parser.add_argument("--analysis", type=Path, required=True)
+    score_parser.add_argument("--oracle", type=Path, required=True)
+    score_parser.add_argument("--output", type=Path)
+
     args = parser.parse_args()
     if args.command == "run":
         session = TelemetrySession(args.output)
@@ -49,5 +61,21 @@ def main() -> None:
             print(json.dumps(result.__dict__, default=str, sort_keys=True))
         finally:
             session.shutdown()
-    else:
+    elif args.command == "analyze":
         print(json.dumps(analyze(args.input), indent=2, sort_keys=True))
+    elif args.command == "project":
+        project_file(args.input, args.output, EvidenceProfile(args.profile))
+    else:
+        analysis = json.loads(args.analysis.read_text(encoding="utf-8"))
+        oracle = json.loads(args.oracle.read_text(encoding="utf-8"))
+        if isinstance(analysis, dict):
+            analysis = [analysis]
+        if isinstance(oracle, dict):
+            oracle = [oracle]
+        result = score_reports(analysis, oracle)
+        rendered = json.dumps(result, indent=2, sort_keys=True)
+        if args.output:
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            args.output.write_text(rendered + "\n", encoding="utf-8")
+        else:
+            print(rendered)

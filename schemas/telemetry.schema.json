@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "aol-telemetry-v1",
+  "title": "Agent Observability Lab telemetry span",
+  "type": "object",
+  "required": ["trace_id", "span_id", "name", "kind", "start_time_unix_nano", "end_time_unix_nano", "status", "attributes", "events"],
+  "properties": {
+    "trace_id": {"type": "string"},
+    "span_id": {"type": "string"},
+    "parent_span_id": {"type": ["string", "null"]},
+    "name": {"type": "string"},
+    "kind": {"type": "string"},
+    "start_time_unix_nano": {"type": "integer"},
+    "end_time_unix_nano": {"type": "integer"},
+    "duration_ms": {"type": "number"},
+    "status": {"type": "string"},
+    "attributes": {"type": "object"},
+    "events": {"type": "array"}
+  }
+}

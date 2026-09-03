@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "aol-results-v1",
+  "title": "Agent Observability Lab scoring result",
+  "type": "object",
+  "required": ["trace_id", "sequence_exact", "topology_edge_f1", "findings"],
+  "properties": {
+    "trace_id": {"type": "string"},
+    "sequence_exact": {"type": "boolean"},
+    "topology_edge_f1": {"type": "number"},
+    "findings": {"type": "object"}
+  }
+}

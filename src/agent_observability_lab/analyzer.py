@@ -91,15 +91,39 @@ def analyze(path: Path) -> list[dict[str, object]]:
                 }
             )
 
+        sequence = [span["name"] for span in spans]
+        sequence_index = {span["span_id"]: index for index, span in enumerate(spans)}
+        parent_edges = [
+            {
+                "parent_index": sequence_index[span["parent_span_id"]],
+                "child_index": sequence_index[span["span_id"]],
+            }
+            for span in spans
+            if span.get("parent_span_id") in sequence_index
+        ]
+        total_input_tokens = sum(
+            int(span["attributes"].get("gen_ai.usage.input_tokens", 0))
+            for span in spans
+            if span["name"].startswith("chat ")
+        )
+        total_duration_ms = max(
+            (float(span["end_time_unix_nano"]) - float(span["start_time_unix_nano"])) / 1_000_000
+            for span in spans
+        ) if spans else 0.0
+
         reports.append(
             {
                 "trace_id": trace_id,
-                "sequence": [span["name"] for span in spans],
+                "sequence": sequence,
+                "parent_edges": parent_edges,
                 "span_count": len(spans),
                 "tool_call_count": len(tool_spans),
                 "model_call_count": model_call_count,
                 "max_depth": max_depth,
+                "input_tokens": total_input_tokens,
                 "output_tokens": total_output_tokens,
+                "duration_ms": round(total_duration_ms, 3),
+                "error_count": len(error_tools),
                 "findings": findings,
             }
         )

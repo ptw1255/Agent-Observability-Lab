@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "aol-ground-truth-v1",
+  "title": "Agent Observability Lab ground truth record",
+  "type": "object",
+  "required": ["trace_id", "run_id", "task_id", "expected_sequence", "expected_parent_edges", "expected_findings"],
+  "properties": {
+    "trace_id": {"type": "string"},
+    "run_id": {"type": "string"},
+    "task_id": {"type": "string"},
+    "condition": {"type": "string"},
+    "expected_sequence": {"type": "array", "items": {"type": "string"}},
+    "expected_parent_edges": {"type": "array"},
+    "expected_findings": {"type": "array", "items": {"type": "string"}},
+    "expected_outcome": {}
+  }
+}
