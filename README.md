@@ -6,11 +6,6 @@ Agent Observability Lab is a laptop-sized, hands-on study of telemetry as machin
 
 The wording is intentional: this project studies **execution paths**, not hidden chain-of-thought. Telemetry may reveal calls, failures, retries, topology, latency, and cost. It generally cannot reveal a model's unrecorded intent or prove answer correctness without a separate evaluator.
 
-## Status
-
-**Initial slice implemented.** The full experiment has not been run and this repository contains no experiment results yet.
-
-The current slice includes a deterministic invoice task, all five initial execution conditions, local JSONL OpenTelemetry export, telemetry-only detectors, and unit tests. The remaining task families, evidence projections, and scoring workflow are still to be built.
 
 ## Local-first v0 scope
 
