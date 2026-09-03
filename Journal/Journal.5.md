@@ -1,36 +1,46 @@
 # Journal.5 — First profile comparison
 
-## What will change
+## What changed
 
-Run one baseline invoice case through the complete evidence pipeline:
+- Generated one baseline invoice trace.
+- Built a sealed oracle containing the expected sequence, parent edges, and empty finding set.
+- Projected the same raw trace into P0, P1, and P2.
+- Ran the telemetry-only analyzer on each projection.
+- Scored each report against the oracle.
+- Published the raw trace, projections, oracle, analyses, and scores under `data/published/local-v0-profile-comparison/`.
 
-```text
-raw trace → P0/P1/P2 projections → telemetry-only analyzer → oracle scoring
-```
+Implementation commit: `07bb13f`.
 
-The oracle will contain the expected operation sequence, parent edges, and empty finding set for the healthy baseline.
+## Why we did it
 
-## Why we are doing it
+The schema, projection, and scoring utilities needed one end-to-end check before we generate the full dataset. Using one raw trace for all three profiles holds execution constant while changing the evidence available to the analyzer.
 
-The projection and scoring code exists. This checkpoint verifies that the contracts work together on one trace before expanding to all tasks, conditions, and repetitions.
-
-The comparison should show which fields each profile removes and whether the analyzer can reconstruct the healthy graph from each remaining evidence set.
+The baseline case also establishes the healthy sequence and resource totals for the invoice task.
 
 ## Result at this checkpoint
 
-No profile comparison has been run yet. This is the next experiment step.
+The trace contains four spans in the reconstructed order:
 
-The comparison is ready to close when:
+```text
+invoke_agent → chat plan → calculator → chat finalize
+```
 
-- one raw trace produces valid P0, P1, and P2 files;
-- the oracle remains outside analyzer input;
-- each profile generates a machine-readable analyzer report;
-- sequence and topology scores are recorded;
-- missing evidence in lower profiles is documented.
+All three profiles produced:
+
+- exact sequence match: `true`;
+- topology-edge F1: `1.0`;
+- model call count match: `true`;
+- tool call count match: `true`;
+- no predicted findings for the healthy run.
+
+P0 lost both token totals because it removes all attributes. P1 restored input and output token matches. P2 matched P1 for this case because the extra correlation fields were unnecessary for a healthy, non-repeated path.
+
+This is a pipeline result for one baseline case. It shows that structure survives P0 and token accounting requires P1. It does not measure anomaly detection yet; the empty finding set makes that comparison vacuous.
 
 ## Next step
 
-- Add a small oracle-builder utility for known task graphs.
-- Generate the baseline invoice oracle.
-- Run the three projections and score them.
-- Record the first measured P0/P1/P2 comparison in Journal.6.
+Run the transient tool-failure invoice case through P0, P1, and P2. Measure which profile can identify the failed calculator, the recovery path, and the two attempts. Record the comparison in Journal.6.
+
+## Artifacts
+
+- [Published comparison directory](../data/published/local-v0-profile-comparison/)

@@ -9,6 +9,7 @@ from pathlib import Path
 
 from .analyzer import analyze
 from .projections import EvidenceProfile, project_file
+from .oracle import build_baseline_oracle
 from .runtime import Condition, DeterministicAgent
 from .scoring import score_reports
 from .tasks import ComparisonTask, DocumentTask, InvoiceTask
@@ -34,6 +35,7 @@ def main() -> None:
 
     analyze_parser = subparsers.add_parser("analyze", help="analyze telemetry only")
     analyze_parser.add_argument("--input", type=Path, required=True)
+    analyze_parser.add_argument("--output", type=Path)
 
     project_parser = subparsers.add_parser("project", help="create a restricted evidence profile")
     project_parser.add_argument("--input", type=Path, required=True)
@@ -44,6 +46,11 @@ def main() -> None:
     score_parser.add_argument("--analysis", type=Path, required=True)
     score_parser.add_argument("--oracle", type=Path, required=True)
     score_parser.add_argument("--output", type=Path)
+
+    oracle_parser = subparsers.add_parser("oracle", help="build one sealed baseline oracle")
+    oracle_parser.add_argument("--input", type=Path, required=True)
+    oracle_parser.add_argument("--task", required=True)
+    oracle_parser.add_argument("--output", type=Path, required=True)
 
     args = parser.parse_args()
     if args.command == "run":
@@ -62,10 +69,15 @@ def main() -> None:
         finally:
             session.shutdown()
     elif args.command == "analyze":
-        print(json.dumps(analyze(args.input), indent=2, sort_keys=True))
+        rendered = json.dumps(analyze(args.input), indent=2, sort_keys=True)
+        if args.output:
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            args.output.write_text(rendered + "\n", encoding="utf-8")
+        else:
+            print(rendered)
     elif args.command == "project":
         project_file(args.input, args.output, EvidenceProfile(args.profile))
-    else:
+    elif args.command == "score":
         analysis = json.loads(args.analysis.read_text(encoding="utf-8"))
         oracle = json.loads(args.oracle.read_text(encoding="utf-8"))
         if isinstance(analysis, dict):
@@ -79,3 +91,7 @@ def main() -> None:
             args.output.write_text(rendered + "\n", encoding="utf-8")
         else:
             print(rendered)
+    else:
+        oracle = build_baseline_oracle(args.input, args.task)
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(json.dumps(oracle, indent=2, sort_keys=True) + "\n", encoding="utf-8")

@@ -1,0 +1,32 @@
+{
+  "condition": "baseline",
+  "expected_findings": [],
+  "expected_input_tokens": 64,
+  "expected_model_call_count": 2,
+  "expected_outcome": "success",
+  "expected_output_tokens": 40,
+  "expected_parent_edges": [
+    {
+      "child_index": 1,
+      "parent_index": 0
+    },
+    {
+      "child_index": 2,
+      "parent_index": 0
+    },
+    {
+      "child_index": 3,
+      "parent_index": 0
+    }
+  ],
+  "expected_sequence": [
+    "invoke_agent deterministic-agent",
+    "chat scripted-model",
+    "execute_tool calculator",
+    "chat scripted-model"
+  ],
+  "expected_tool_call_count": 1,
+  "run_id": "4bbdfdad-96c2-4368-abf0-690969a09ab4",
+  "task_id": "invoice-total-v1",
+  "trace_id": "9810278ba8d5afecc4381aad23a82e72"
+}

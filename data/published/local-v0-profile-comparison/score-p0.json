@@ -1,0 +1,23 @@
+[
+  {
+    "findings": {
+      "expected": [],
+      "precision": 1.0,
+      "predicted": [],
+      "recall": 1.0
+    },
+    "resource_matches": {
+      "input_tokens": false,
+      "model_call_count": true,
+      "output_tokens": false,
+      "tool_call_count": true
+    },
+    "sequence_exact": true,
+    "sequence_length": {
+      "expected": 4,
+      "predicted": 4
+    },
+    "topology_edge_f1": 1.0,
+    "trace_id": "9810278ba8d5afecc4381aad23a82e72"
+  }
+]

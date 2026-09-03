@@ -29,6 +29,18 @@ def score_report(report: dict[str, object], oracle: dict[str, object]) -> dict[s
     expected_findings = set(oracle.get("expected_findings", []))
     finding_overlap = len(predicted_findings & expected_findings)
 
+    resource_fields = [
+        "model_call_count",
+        "tool_call_count",
+        "input_tokens",
+        "output_tokens",
+    ]
+    resource_matches = {
+        field: report.get(field) == oracle.get(f"expected_{field}")
+        for field in resource_fields
+        if f"expected_{field}" in oracle
+    }
+
     return {
         "trace_id": report.get("trace_id"),
         "sequence_exact": predicted_sequence == expected_sequence,
@@ -39,6 +51,7 @@ def score_report(report: dict[str, object], oracle: dict[str, object]) -> dict[s
             edge_overlap,
             len(expected_edges),
         ),
+        "resource_matches": resource_matches,
         "findings": {
             "precision": round(
                 finding_overlap / len(predicted_findings), 4

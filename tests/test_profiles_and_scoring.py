@@ -2,6 +2,7 @@ import json
 
 from agent_observability_lab.analyzer import analyze
 from agent_observability_lab.projections import EvidenceProfile, project_file
+from agent_observability_lab.oracle import build_baseline_oracle
 from agent_observability_lab.scoring import score_report
 from agent_observability_lab.runtime import Condition, DeterministicAgent
 from agent_observability_lab.tasks import InvoiceTask
@@ -65,3 +66,25 @@ def test_analyzer_reports_scoreable_topology_fields(tmp_path):
     assert report["parent_edges"]
     assert report["model_call_count"] == 2
     assert report["tool_call_count"] == 1
+
+
+def test_baseline_oracle_matches_invoice_graph(tmp_path):
+    output = tmp_path / "trace.jsonl"
+    session = TelemetrySession(output)
+    try:
+        DeterministicAgent(session.tracer).run(InvoiceTask(), Condition.BASELINE, "opaque-run")
+    finally:
+        session.shutdown()
+
+    oracle = build_baseline_oracle(output, "invoice-total-v1")
+    assert oracle["expected_sequence"] == [
+        "invoke_agent deterministic-agent",
+        "chat scripted-model",
+        "execute_tool calculator",
+        "chat scripted-model",
+    ]
+    assert oracle["expected_parent_edges"] == [
+        {"parent_index": 0, "child_index": 1},
+        {"parent_index": 0, "child_index": 2},
+        {"parent_index": 0, "child_index": 3},
+    ]
