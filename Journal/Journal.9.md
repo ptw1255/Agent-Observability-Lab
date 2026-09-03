@@ -37,3 +37,31 @@ The result is meaningful but bounded. It demonstrates detection of an intentiona
 Run the complete local matrix with repeated baseline and failure-mode trials. Aggregate the profile scores and execution measurements so the project can separate a repeatable signal from a single illustrative trace.
 
 Artifacts: [local-v0-excessive-profile-comparison](../data/published/local-v0-excessive-profile-comparison/).
+
+## Work snapshot
+
+The trace, shown as parent-child structure rather than raw JSON, looks like this:
+
+```text
+invoke_agent deterministic-agent
+├─ chat scripted-model                 plan
+├─ plan reflection                     depth 1
+│  ├─ chat scripted-model              reflection-1
+│  └─ plan reflection                  depth 2
+│     ├─ chat scripted-model           reflection-2
+│     └─ plan reflection               depth 3
+│        ├─ chat scripted-model        reflection-3
+│        └─ plan reflection            depth 4
+│           ├─ chat scripted-model     reflection-4
+│           └─ plan reflection         depth 5
+│              └─ chat scripted-model  reflection-5
+├─ execute_tool calculator
+└─ chat scripted-model                 finalize
+```
+
+Notable evidence:
+
+- The five nested reflection spans create the abnormal depth. The model calls inside them create the excess call count.
+- The calculator succeeds, the root status is `UNSET`, and the task still returns the correct answer. This is an inefficient-path signal, not a failure signal.
+- P0 can reconstruct the shape from span names and parentage. P1 adds the 224 input and 360 output token totals. P2 adds boundary correlation fields, but they are not needed for this finding.
+- The trace shows that extra work happened. It does not show whether the extra reasoning was useful.
