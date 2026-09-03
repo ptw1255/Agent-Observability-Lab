@@ -3,7 +3,8 @@ import json
 from agent_observability_lab.analyzer import analyze
 import pytest
 
-from agent_observability_lab.runtime import Condition, DeterministicAgent, InvoiceTask
+from agent_observability_lab.runtime import Condition, DeterministicAgent
+from agent_observability_lab.tasks import DocumentTask, InvoiceTask
 from agent_observability_lab.telemetry import TelemetrySession
 
 
@@ -52,3 +53,24 @@ def test_analyzer_detects_additional_conditions_without_labels(tmp_path, conditi
         assert result.answer == 64.64
     if condition == Condition.RETRY_LOOP:
         assert result.answer is None
+
+
+@pytest.mark.parametrize("condition", list(Condition))
+def test_document_task_conditions_remain_blind(tmp_path, condition):
+    output = tmp_path / f"document-{condition.value}.jsonl"
+    session = TelemetrySession(output)
+    try:
+        result = DeterministicAgent(session.tracer).run(
+            DocumentTask(), condition, "opaque-document-run"
+        )
+    finally:
+        session.shutdown()
+
+    report = analyze(output)[0]
+    raw = output.read_text()
+    assert condition.value not in raw
+    if condition == Condition.RETRY_LOOP:
+        assert result.answer is None
+        assert "retry_loop" in {item["type"] for item in report["findings"]}
+    else:
+        assert result.answer == "30 days"

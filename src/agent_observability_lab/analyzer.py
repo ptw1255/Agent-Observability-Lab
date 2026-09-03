@@ -19,7 +19,7 @@ def analyze(path: Path) -> list[dict[str, object]]:
     reports: list[dict[str, object]] = []
     for trace_id, spans in traces.items():
         spans.sort(key=lambda item: item["start_time_unix_nano"])
-        tool_spans = [span for span in spans if span["name"] == "execute_tool calculator"]
+        tool_spans = [span for span in spans if span["name"].startswith("execute_tool ")]
         span_by_id = {span["span_id"]: span for span in spans}
         findings: list[dict[str, object]] = []
         error_tools = []
