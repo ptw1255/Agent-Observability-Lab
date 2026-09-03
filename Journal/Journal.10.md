@@ -22,6 +22,10 @@ This is the point where the project moves from â€œcan this trace be explained?â€
 
 The repeated matrix has not been run yet. The existing published comparisons are single-run demonstrations and should not be treated as estimates of detector performance.
 
+## Next step
+
+Implement the matrix runner and aggregation report, run the 75 deterministic trials, inspect failures in the collection workflow, and record the first cross-condition findings in Journal.11.
+
 ## Work snapshot
 
 For each matrix checkpoint, this section will show one representative trace shape and the measurements that matter. The snapshot should make it easy to see the difference between a normal path and an injected path before reading the aggregate tables.
@@ -36,7 +40,3 @@ task-condition / repetition
 ```
 
 The notable point to preserve is the link between a finding and its evidence. For example, a retry finding should point to repeated failed tool spans and attempt numbers; an excessive-path finding should point to depth, call count, token cost, or latency. A label without that evidence is not a useful observability result.
-
-## Next step
-
-Implement the matrix runner and aggregation report, run the 75 deterministic trials, inspect failures in the collection workflow, and record the first cross-condition findings in Journal.11.
