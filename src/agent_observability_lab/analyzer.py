@@ -110,6 +110,9 @@ def analyze(path: Path) -> list[dict[str, object]]:
             (float(span["end_time_unix_nano"]) - float(span["start_time_unix_nano"])) / 1_000_000
             for span in spans
         ) if spans else 0.0
+        root_span = next(
+            (span for span in spans if span.get("parent_span_id") is None), None
+        )
         attempt_numbers = [
             span["attributes"].get("agent_observability_lab.attempt_number")
             for span in tool_spans
@@ -129,6 +132,7 @@ def analyze(path: Path) -> list[dict[str, object]]:
                 "duration_ms": round(total_duration_ms, 3),
                 "error_count": len(error_tools),
                 "attempt_numbers": attempt_numbers,
+                "root_status": root_span["status"] if root_span else None,
                 "findings": findings,
             }
         )

@@ -103,3 +103,19 @@ def test_transient_oracle_captures_recovery_attempts(tmp_path):
     oracle = build_oracle(output, "invoice-total-v1", "transient_tool_failure")
     assert oracle["expected_findings"] == ["tool_failure"]
     assert oracle["expected_attempt_numbers"] == [1, 2]
+
+
+def test_retry_oracle_captures_terminal_failure(tmp_path):
+    output = tmp_path / "retry.jsonl"
+    session = TelemetrySession(output)
+    try:
+        DeterministicAgent(session.tracer).run(
+            InvoiceTask(), Condition.RETRY_LOOP, "opaque-run"
+        )
+    finally:
+        session.shutdown()
+
+    oracle = build_oracle(output, "invoice-total-v1", "retry_loop")
+    assert oracle["expected_findings"] == ["tool_failure", "retry_loop"]
+    assert oracle["expected_attempt_numbers"] == [1, 2, 3]
+    assert oracle["expected_root_status"] == "ERROR"

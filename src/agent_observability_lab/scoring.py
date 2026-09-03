@@ -43,6 +43,9 @@ def score_report(report: dict[str, object], oracle: dict[str, object]) -> dict[s
     attempt_sequence_match = None
     if "expected_attempt_numbers" in oracle:
         attempt_sequence_match = report.get("attempt_numbers") == oracle["expected_attempt_numbers"]
+    root_status_match = None
+    if "expected_root_status" in oracle:
+        root_status_match = report.get("root_status") == oracle["expected_root_status"]
 
     return {
         "trace_id": report.get("trace_id"),
@@ -56,6 +59,7 @@ def score_report(report: dict[str, object], oracle: dict[str, object]) -> dict[s
         ),
         "resource_matches": resource_matches,
         "attempt_sequence_match": attempt_sequence_match,
+        "root_status_match": root_status_match,
         "findings": {
             "precision": round(
                 finding_overlap / len(predicted_findings), 4

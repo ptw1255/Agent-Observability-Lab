@@ -66,6 +66,24 @@ TRANSIENT_INVOICE_RESOURCES = {
     "expected_output_tokens": 58,
 }
 
+RETRY_INVOICE_GRAPH = [
+    "invoke_agent deterministic-agent",
+    "chat scripted-model",
+    "execute_tool calculator",
+    "chat scripted-model",
+    "execute_tool calculator",
+    "chat scripted-model",
+    "execute_tool calculator",
+    "chat scripted-model",
+]
+
+RETRY_INVOICE_RESOURCES = {
+    "expected_model_call_count": 4,
+    "expected_tool_call_count": 3,
+    "expected_input_tokens": 128,
+    "expected_output_tokens": 84,
+}
+
 
 def build_oracle(trace_path: Path, task_id: str, condition: str) -> dict[str, object]:
     """Build one oracle from a raw trace and a known deterministic task graph."""
@@ -96,6 +114,11 @@ def build_oracle(trace_path: Path, task_id: str, condition: str) -> dict[str, ob
         resources = TRANSIENT_INVOICE_RESOURCES
         expected_findings = ["tool_failure"]
         expected_attempt_numbers = [1, 2]
+    elif task_id == "invoice-total-v1" and condition == "retry_loop":
+        expected_sequence = RETRY_INVOICE_GRAPH
+        resources = RETRY_INVOICE_RESOURCES
+        expected_findings = ["tool_failure", "retry_loop"]
+        expected_attempt_numbers = [1, 2, 3]
     else:
         raise ValueError(f"oracle graph not yet defined: {task_id}/{condition}")
     return {
@@ -109,7 +132,8 @@ def build_oracle(trace_path: Path, task_id: str, condition: str) -> dict[str, ob
             for index in range(1, len(expected_sequence))
         ],
         "expected_findings": expected_findings,
-        "expected_outcome": "success",
+        "expected_outcome": "failed" if condition == "retry_loop" else "success",
+        "expected_root_status": "ERROR" if condition == "retry_loop" else "UNSET",
         "expected_attempt_numbers": expected_attempt_numbers,
         **resources,
     }

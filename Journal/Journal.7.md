@@ -1,79 +1,54 @@
 # Journal.7 — Retry-loop profile comparison
 
-## What we will do
+## What we did
 
-Run one invoice case where the calculator fails three times and the runtime exhausts its retry budget.
+We ran one invoice case where the calculator failed three times and the runtime exhausted its retry budget.
 
-The expected path contains:
+The resulting trace contained eight spans:
 
 ```text
-plan → calculator error → retry decision → calculator error → retry decision → calculator error → retry decision
+invoke_agent
+  → chat plan
+  → calculator [error]
+  → chat retry
+  → calculator [error]
+  → chat retry
+  → calculator [error]
+  → chat retry
 ```
 
-The root agent span should end with a failed task outcome.
+We extended the oracle builder for the retry graph and recorded the failed root outcome, three tool calls, four model calls, and the expected findings `tool_failure` and `retry_loop`.
+
+We projected the raw trace into P0, P1, and P2, ran the analyzer on each projection, scored the reports, and published the artifacts under `data/published/local-v0-retry-profile-comparison/`.
 
 ## Concept to know
 
-A retry loop is an execution pattern, not one error. The analyzer needs repeated attempts, repeated failure evidence, and a relationship between those attempts.
+A retry loop is a sequence of related failures. One error proves that an operation failed. Repeated errors plus a terminal budget outcome show that the runtime continued attempting the same work.
 
-The current runtime does not call a model provider. `chat scripted-model` spans come from a local deterministic Python method. Its token counts are fixed test values, and a short local delay supplies measurable duration. Calculator and retrieval operations are also local functions. Retry failures come from controlled `ToolExecutionError` exceptions, which OpenTelemetry records as exception events inside the tool spans.
+P0 can see failed statuses, repeated tool spans, and the failed root status. P1 adds the tool name and generic error type. P2 adds logical operation ID and attempt number, which identify attempts one through three as one operation.
 
-This makes the current result an instrumentation and analyzer result. It does not measure real model behavior. The hosted-model lane will replace the scripted model adapter after the deterministic comparisons are complete.
+The current model calls remain scripted local Python operations. Token counts are fixed test values, and local delays provide duration. The retry failures are controlled exceptions. This comparison measures telemetry and analyzer behavior; the hosted-model lane will test real model-selected execution later.
 
-P0 can count failed tool spans and observe the terminal root status. P1 can identify the tool and error type. P2 can show that the failures share one logical operation and consume attempts one through three.
+## Why we did it
 
-The comparison will show whether retry-loop detection depends on custom attempt metadata or can operate from repeated span structure alone.
+The transient comparison tested one failure followed by recovery. A retry loop tests repeated failure with no successful recovery.
 
-## Why we are doing it
-
-The transient case tested recovery after one failure. The retry-loop case tests repeated failure with no successful recovery.
-
-This is the failure pattern most likely to support a runtime action such as stopping after a retry budget is exhausted.
-
-## Why this approach is viable
-
-The deterministic runtime is a valid control lane. It gives us exact ground truth, repeatable failures, stable token values, and known topology. Those controls let us test the telemetry pipeline and analyzer before provider timing and model variability enter the measurement.
-
-The control lane answers this question:
-
-> Can telemetry and an analyzer reconstruct known execution patterns?
-
-It does not answer this question:
-
-> Can telemetry explain inefficient behavior produced by a real model making real tool choices?
-
-The second question requires the hosted-model lane. That lane will use the same boundary contract with one real model adapter and will report its results separately from the deterministic results.
-
-The current design has four validity risks:
-
-- **Script overfitting:** vary retry counts, delays, arguments, and held-out fixtures before treating detector scores as general.
-- **Predetermined behavior:** let the hosted model choose tools so the integration lane tests actual model-selected paths.
-- **Manual span placement:** describe the claim as boundary instrumentation at shared runtime interfaces. The study does not claim that zero instrumentation is required.
-- **Narrow scoring:** complete all five conditions across all three tasks, then test missing attributes and dropped spans.
-
-The evidence path is:
-
-```text
-deterministic control → profile comparisons → 75-run matrix → hosted replication → bounded feedback
-```
-
-The current project is a viable foundation. The deterministic results establish measurement validity. The hosted results will establish whether the findings generalize to real agent execution.
+That distinction matters for runtime feedback. A post-run report can identify a loop. A live detector could stop the next retry only if the loop is recognizable before the budget is consumed.
 
 ## Result at this checkpoint
 
-No retry-loop profile comparison has been run yet.
+All profiles reconstructed the eight-span sequence exactly. Each profile achieved topology-edge F1 of `1.0`, matched the failed root status, and detected both expected findings with precision and recall of `1.0`.
 
-The checkpoint is ready to close when each profile records:
+P0 and P1 could not match the attempt sequence because their projections remove the custom attempt field. P2 matched `[1, 2, 3]`.
 
-- repeated failed calculator spans;
-- terminal root failure;
-- retry-loop finding precision and recall;
-- attempt sequence recoverability;
-- the evidence required to attribute all attempts to one operation.
+P0 matched model and tool call counts but lost token totals. P1 and P2 matched all four resource fields.
+
+This result shows that repeated failure detection works from generic structure and standard attributes in this controlled case. P2 adds attempt attribution. The result covers one task and one retry pattern.
 
 ## Next step
 
-- Extend the oracle builder for the retry-loop graph.
-- Run and publish P0, P1, and P2 projections.
-- Compare loop detection, root outcome, and attempt attribution.
-- Record the measured result in Journal.8.
+Run the redundant-tool-use comparison on the two-option task. Test whether P0, P1, and P2 can distinguish two required lookup calls from a repeated lookup with identical arguments.
+
+## Artifacts
+
+- [Published comparison directory](../data/published/local-v0-retry-profile-comparison/)
