@@ -1,37 +1,39 @@
 # Journal.8 — Redundant-tool-use profile comparison
 
-## What we will do
+## What we did
 
-Run one two-option comparison case with the redundant condition. The healthy task requires lookup A and lookup B. The injected path repeats lookup B with the same normalized arguments before the calculator runs.
+We ran one two-option comparison case with the `redundant_tool_use` condition. The healthy task requires one lookup for option A and one lookup for option B. The injected path performs the option B lookup twice with the same normalized arguments, then runs the calculator and produces the answer.
 
-The comparison will pass the raw trace through P0, P1, and P2, then score the analyzer findings against a sealed oracle.
+The raw trace was copied into three evidence projections and analyzed the same way in each case:
+
+- P0 removed all span attributes.
+- P1 retained standard model, tool, token, and error attributes.
+- P2 retained P1 plus the run identifier, logical operation identifier, attempt number, step number, task identifier, and argument fingerprint.
+
+The analyzer was scored against a sealed oracle describing the known seven-span path and the expected `candidate_redundant_tool_use` finding. The oracle is not used by the analyzer; it only provides the reference needed to measure whether the inference was correct.
 
 ## Concept to know
 
-Multiple tool calls are legitimate when the task depends on multiple inputs. A repeated successful call becomes a candidate duplicate when the tool identity and normalized argument fingerprint match and the trace shows no new dependency between calls.
+Multiple tool calls are legitimate when a task depends on multiple inputs. Therefore, a detector that merely counts tool calls would be too crude: the baseline comparison already contains two different lookups. A repeated successful call becomes a candidate duplicate when the tool identity and normalized argument fingerprint match and the trace shows no new dependency between calls.
 
-P0 and P1 preserve operation names and tool identity, but they remove the custom argument fingerprint. P2 retains the fingerprint and logical operation fields needed to correlate equivalent calls.
+The argument fingerprint is a compact correlation key derived from normalized tool arguments. It does not record the full business logic or the model's private reasoning. It answers a narrower question: did two observed tool spans request equivalent work? P0 and P1 remove that key, while P2 retains it.
 
-The finding will remain `candidate_redundant_tool_use`. Telemetry can show repeated equivalent work; task context and ground truth establish whether the repeat was unnecessary in this experiment.
+The finding is deliberately named `candidate_redundant_tool_use`. Telemetry can show repeated equivalent work, but telemetry alone cannot prove that the repeat was semantically unnecessary. In this controlled experiment, the task definition and oracle establish that the repeat was injected redundancy.
 
-## Why we are doing it
+## Why we did it
 
-The comparison task provides the required control case: two different lookups in the baseline. The redundant condition adds one repeated lookup. This tests whether the analyzer can avoid flagging required multi-tool work while identifying the injected duplicate.
+The comparison task provides the required control case: two different lookups in the baseline. The redundant condition adds one repeated lookup without changing the task. This isolates the question of whether an analyzer can avoid flagging legitimate multi-tool work while identifying an injected duplicate.
 
 ## Result at this checkpoint
 
-No redundant-tool profile comparison has been run yet.
+All three profiles reconstructed the seven-span sequence and parent topology exactly. P1 and P2 also recovered the expected model and tool counts and token totals. P0 could not recover token totals because those values are attributes rather than span structure.
 
-The checkpoint is ready to close when:
+P0 and P1 predicted no redundancy finding. Their finding recall was 0.0 because neither profile contained the argument fingerprint needed to compare equivalent lookup requests. P2 predicted `candidate_redundant_tool_use` with precision 1.0 and recall 1.0. P2 also matched the expected tool-attempt sequence; P0 and P1 did not retain the custom attempt metadata.
 
-- the baseline operation graph remains free of a redundancy finding;
-- the redundant path produces the expected candidate finding;
-- the profiles show which evidence is required;
-- sequence and topology scores remain interpretable.
+This is a meaningful result, but it is narrow. It shows that the execution graph and standard resource attributes are not sufficient for this duplicate-use question. One small boundary-level field, the argument fingerprint, materially improves the diagnosis without instrumenting every business-logic step.
 
 ## Next step
 
-- Extend the oracle builder for comparison redundancy.
-- Run and publish the three projections.
-- Compare duplicate detection by profile.
-- Record the measured result in Journal.9.
+Run the excessive-path condition on the invoice task. It will add repeated reflection/model work without changing the business task, allowing us to test whether span depth, model-call count, output tokens, and latency identify an expensive execution path.
+
+Artifacts: [local-v0-redundant-profile-comparison](../data/published/local-v0-redundant-profile-comparison/).
