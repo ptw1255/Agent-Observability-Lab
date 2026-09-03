@@ -1,4 +1,4 @@
-# Journal.4 — Telemetry profiles and scoring contract
+# Journal.04 — Telemetry profiles and scoring contract
 
 ## What we did
 

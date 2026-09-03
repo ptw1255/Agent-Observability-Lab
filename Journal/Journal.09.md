@@ -1,4 +1,4 @@
-# Journal.9 — Excessive-path profile comparison
+# Journal.09 — Excessive-path profile comparison
 
 ## What we did
 

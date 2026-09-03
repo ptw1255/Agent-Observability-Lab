@@ -1,4 +1,4 @@
-# Journal.7 — Retry-loop profile comparison
+# Journal.07 — Retry-loop profile comparison
 
 ## What we did
 

@@ -1,4 +1,4 @@
-# Journal.1 — First instrumented task
+# Journal.01 — First instrumented task
 
 ## What we did
 

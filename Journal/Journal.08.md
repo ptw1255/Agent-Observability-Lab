@@ -1,4 +1,4 @@
-# Journal.8 — Redundant-tool-use profile comparison
+# Journal.08 — Redundant-tool-use profile comparison
 
 ## What we did
 

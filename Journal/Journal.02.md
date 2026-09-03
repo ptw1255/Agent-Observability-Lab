@@ -1,4 +1,4 @@
-# Journal.2 — Local document-answer task
+# Journal.02 — Local document-answer task
 
 ## What we did
 

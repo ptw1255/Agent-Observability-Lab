@@ -1,4 +1,4 @@
-# Journal.6 — Transient-failure profile comparison
+# Journal.06 — Transient-failure profile comparison
 
 ## What we did
 

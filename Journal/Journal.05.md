@@ -1,4 +1,4 @@
-# Journal.5 — First profile comparison
+# Journal.05 — First profile comparison
 
 ## What we did
 

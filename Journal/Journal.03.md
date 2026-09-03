@@ -1,4 +1,4 @@
-# Journal.3 — Two-option comparison task
+# Journal.03 — Two-option comparison task
 
 ## What we did
 

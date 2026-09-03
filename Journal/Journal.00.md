@@ -1,4 +1,4 @@
-# Journal.0 — Project setup
+# Journal.00 — Project setup
 
 ## What we did
 
@@ -48,8 +48,8 @@ The journal creates a running record of decisions, evidence, and next actions. E
 
 The project has a public home, a defined research question, a bounded v0 protocol, and a data-management policy.
 
-No agent experiment had been run when this checkpoint was created. `Journal.1` begins the implementation history with the first instrumented task.
+No agent experiment had been run when this checkpoint was created. `Journal.01` begins the implementation history with the first instrumented task.
 
 ## Next step
 
-Build the first deterministic agent slice around the invoice task. Record the implementation and its evidence in `Journal.1`.
+Build the first deterministic agent slice around the invoice task. Record the implementation and its evidence in `Journal.01`.
