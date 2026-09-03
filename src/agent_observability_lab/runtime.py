@@ -15,6 +15,9 @@ from opentelemetry.trace import SpanKind, Status, StatusCode
 class Condition(StrEnum):
     BASELINE = "baseline"
     TRANSIENT_TOOL_FAILURE = "transient_tool_failure"
+    RETRY_LOOP = "retry_loop"
+    REDUNDANT_TOOL_USE = "redundant_tool_use"
+    EXCESSIVE_PATH = "excessive_path"
 
 
 @dataclass(frozen=True)
@@ -34,7 +37,7 @@ class RunResult:
     run_id: str
     task_id: str
     condition: Condition
-    answer: float
+    answer: float | None
 
 
 class ToolExecutionError(RuntimeError):
@@ -76,6 +79,7 @@ class DeterministicAgent:
         run_id: str,
         attempt: int,
         should_fail: bool,
+        logical_operation_id: str = "invoice-total",
     ) -> float:
         arguments = {
             "units": task.units,
@@ -89,7 +93,7 @@ class DeterministicAgent:
                 "gen_ai.operation.name": "execute_tool",
                 "gen_ai.tool.name": "calculator",
                 "agent_observability_lab.run_id": run_id,
-                "agent_observability_lab.logical_operation_id": "invoice-total",
+                "agent_observability_lab.logical_operation_id": logical_operation_id,
                 "agent_observability_lab.attempt_number": attempt,
                 "agent_observability_lab.argument_fingerprint": _fingerprint(arguments),
             },
@@ -102,6 +106,22 @@ class DeterministicAgent:
                 span.set_attribute("error.type", "tool_unavailable")
                 raise error
             return task.expected_total
+
+    def _excessive_reflection(self, run_id: str, depth: int, max_depth: int) -> None:
+        """Create an intentionally deep but deterministic planning path."""
+        with self.tracer.start_as_current_span(
+            "plan reflection",
+            kind=SpanKind.INTERNAL,
+            attributes={
+                "gen_ai.operation.name": "plan",
+                "gen_ai.agent.name": "invoice-agent",
+                "agent_observability_lab.run_id": run_id,
+                "agent_observability_lab.step_number": depth,
+            },
+        ):
+            self._model_call(f"reflection-{depth}", run_id, output_tokens=64)
+            if depth < max_depth:
+                self._excessive_reflection(run_id, depth + 1, max_depth)
 
     def run(self, task: InvoiceTask, condition: Condition, run_id: str) -> RunResult:
         with self.tracer.start_as_current_span(
@@ -116,6 +136,20 @@ class DeterministicAgent:
             },
         ) as root:
             self._model_call("plan", run_id)
+            if condition == Condition.EXCESSIVE_PATH:
+                self._excessive_reflection(run_id, depth=1, max_depth=5)
+
+            if condition == Condition.RETRY_LOOP:
+                for attempt in range(1, 4):
+                    try:
+                        self._calculator(task, run_id, attempt=attempt, should_fail=True)
+                    except ToolExecutionError:
+                        self._model_call("retry-decision", run_id, output_tokens=20)
+                root.set_status(Status(StatusCode.ERROR, "retry budget exhausted"))
+                root.set_attribute("agent_observability_lab.task_outcome", "failed")
+                root.set_attribute("error.type", "retry_budget_exhausted")
+                return RunResult(run_id, task.task_id, condition, None)
+
             try:
                 answer = self._calculator(
                     task,
@@ -126,6 +160,15 @@ class DeterministicAgent:
             except ToolExecutionError:
                 self._model_call("recover", run_id, output_tokens=18)
                 answer = self._calculator(task, run_id, attempt=2, should_fail=False)
+
+            if condition == Condition.REDUNDANT_TOOL_USE:
+                self._calculator(
+                    task,
+                    run_id,
+                    attempt=1,
+                    should_fail=False,
+                    logical_operation_id="invoice-total-duplicate",
+                )
             self._model_call("finalize", run_id, output_tokens=16)
             root.set_attribute("agent_observability_lab.task_outcome", "success")
             return RunResult(run_id, task.task_id, condition, answer)

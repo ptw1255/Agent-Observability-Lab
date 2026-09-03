@@ -10,7 +10,7 @@ The wording is intentional: this project studies **execution paths**, not hidden
 
 **Initial slice implemented.** The full experiment has not been run and this repository contains no experiment results yet.
 
-The current slice includes a deterministic invoice task, baseline and transient-tool-failure conditions, local JSONL OpenTelemetry export, a telemetry-only tool-failure detector, and unit tests. The remaining task families, conditions, evidence projections, and scoring workflow are still to be built.
+The current slice includes a deterministic invoice task, all five initial execution conditions, local JSONL OpenTelemetry export, telemetry-only detectors, and unit tests. The remaining task families, evidence projections, and scoring workflow are still to be built.
 
 ## Local-first v0 scope
 

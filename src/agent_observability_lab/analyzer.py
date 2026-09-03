@@ -20,9 +20,12 @@ def analyze(path: Path) -> list[dict[str, object]]:
     for trace_id, spans in traces.items():
         spans.sort(key=lambda item: item["start_time_unix_nano"])
         tool_spans = [span for span in spans if span["name"] == "execute_tool calculator"]
+        span_by_id = {span["span_id"]: span for span in spans}
         findings: list[dict[str, object]] = []
+        error_tools = []
         for span in tool_spans:
             if span["status"] == "ERROR" or span["attributes"].get("error.type"):
+                error_tools.append(span)
                 findings.append(
                     {
                         "type": "tool_failure",
@@ -31,13 +34,72 @@ def analyze(path: Path) -> list[dict[str, object]]:
                     }
                 )
 
+        if len(tool_spans) >= 3 and len(error_tools) >= 2:
+            findings.append(
+                {
+                    "type": "retry_loop",
+                    "span_id": error_tools[-1]["span_id"],
+                    "evidence": "repeated tool failures consumed multiple attempts",
+                }
+            )
+
+        successful_tools = [span for span in tool_spans if span["status"] != "ERROR"]
+        fingerprints: dict[str, list[dict[str, object]]] = defaultdict(list)
+        for span in successful_tools:
+            fingerprint = span["attributes"].get(
+                "agent_observability_lab.argument_fingerprint"
+            )
+            if fingerprint:
+                fingerprints[str(fingerprint)].append(span)
+        for matching_spans in fingerprints.values():
+            if len(matching_spans) >= 2:
+                findings.append(
+                    {
+                        "type": "candidate_redundant_tool_use",
+                        "span_id": matching_spans[-1]["span_id"],
+                        "evidence": "successful tool calls share an argument fingerprint",
+                    }
+                )
+                break
+
+        def depth(span: dict[str, object]) -> int:
+            current = span
+            result = 0
+            seen: set[str] = set()
+            while current.get("parent_span_id"):
+                parent_id = str(current["parent_span_id"])
+                if parent_id in seen or parent_id not in span_by_id:
+                    break
+                seen.add(parent_id)
+                result += 1
+                current = span_by_id[parent_id]
+            return result
+
+        max_depth = max((depth(span) for span in spans), default=0)
+        model_call_count = sum(span["name"].startswith("chat ") for span in spans)
+        total_output_tokens = sum(
+            int(span["attributes"].get("gen_ai.usage.output_tokens", 0))
+            for span in spans
+            if span["name"].startswith("chat ")
+        )
+        if max_depth >= 6 or model_call_count >= 6 or total_output_tokens >= 300:
+            findings.append(
+                {
+                    "type": "excessive_execution_path",
+                    "span_id": spans[-1]["span_id"],
+                    "evidence": "depth, model calls, or output tokens exceeded the local envelope",
+                }
+            )
+
         reports.append(
             {
                 "trace_id": trace_id,
                 "sequence": [span["name"] for span in spans],
                 "span_count": len(spans),
                 "tool_call_count": len(tool_spans),
-                "model_call_count": sum(span["name"].startswith("chat ") for span in spans),
+                "model_call_count": model_call_count,
+                "max_depth": max_depth,
+                "output_tokens": total_output_tokens,
                 "findings": findings,
             }
         )

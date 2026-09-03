@@ -342,7 +342,7 @@ Agent-Observability-Lab/
 └── tests/
 ```
 
-The data-management documents, project-record templates, empty registry, and first-slice package exist now. The remaining paths describe the later local implementation and generated outputs.
+The data-management documents, project-record templates, empty registry, and first-slice package with all five conditions exist now. The remaining paths describe the later local implementation and generated outputs.
 
 ## 15. Result format
 

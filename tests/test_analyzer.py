@@ -1,6 +1,8 @@
 import json
 
 from agent_observability_lab.analyzer import analyze
+import pytest
+
 from agent_observability_lab.runtime import Condition, DeterministicAgent, InvoiceTask
 from agent_observability_lab.telemetry import TelemetrySession
 
@@ -22,3 +24,31 @@ def test_analyzer_detects_tool_failure_from_telemetry(tmp_path):
     # The analyzer input contains runtime correlation only, not the condition label.
     raw = output.read_text()
     assert "transient_tool_failure" not in raw
+
+
+@pytest.mark.parametrize(
+    ("condition", "finding"),
+    [
+        (Condition.RETRY_LOOP, "retry_loop"),
+        (Condition.REDUNDANT_TOOL_USE, "candidate_redundant_tool_use"),
+        (Condition.EXCESSIVE_PATH, "excessive_execution_path"),
+    ],
+)
+def test_analyzer_detects_additional_conditions_without_labels(tmp_path, condition, finding):
+    output = tmp_path / f"{condition.value}.jsonl"
+    session = TelemetrySession(output)
+    try:
+        result = DeterministicAgent(session.tracer).run(
+            InvoiceTask(), condition, "opaque-run-id"
+        )
+    finally:
+        session.shutdown()
+
+    reports = analyze(output)
+    finding_types = {item["type"] for item in reports[0]["findings"]}
+    assert finding in finding_types
+    assert condition.value not in output.read_text()
+    if condition == Condition.EXCESSIVE_PATH:
+        assert result.answer == 64.64
+    if condition == Condition.RETRY_LOOP:
+        assert result.answer is None
