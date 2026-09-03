@@ -9,6 +9,7 @@ from pathlib import Path
 
 from .analyzer import analyze
 from .feedback import DuplicateSuppressionFeedback, RetryBudgetFeedback
+from .hosted import configuration, run_probe
 from .projections import EvidenceProfile, project_file
 from .oracle import build_oracle
 from .matrix import run_matrix
@@ -65,8 +66,18 @@ def main() -> None:
     matrix_parser.add_argument("--output", type=Path, required=True)
     matrix_parser.add_argument("--repetitions", type=int, default=5)
 
+    hosted_parser = subparsers.add_parser("hosted", help="inspect or run the hosted portability probe")
+    hosted_parser.add_argument("--output", type=Path, required=False)
+    hosted_parser.add_argument("--model")
+    hosted_parser.add_argument("--check-only", action="store_true")
+
     args = parser.parse_args()
-    if args.command == "run":
+    if args.command == "hosted":
+        if args.check_only or not args.output:
+            print(json.dumps(configuration(), indent=2, sort_keys=True))
+        else:
+            print(json.dumps(run_probe(args.output, args.model), indent=2, sort_keys=True))
+    elif args.command == "run":
         session = TelemetrySession(args.output)
         try:
             run_id = str(uuid.uuid4())

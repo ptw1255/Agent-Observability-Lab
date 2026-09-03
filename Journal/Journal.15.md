@@ -1,8 +1,10 @@
 # Journal.15 — Hosted-model and OTLP integration lane
 
-## What we will do
+## What we did
 
-Run a small integration lane using one hosted model adapter and an OTLP-compatible observability backend, while retaining the deterministic lane as the scoring source of truth. Repeat only the smallest task and condition set needed to test portability of the telemetry contract.
+We added a hosted portability probe that sends one invoice prompt to the OpenAI Responses endpoint, records a root span and model span in the same JSONL format, and optionally exports the spans to the endpoint in `OTEL_EXPORTER_OTLP_ENDPOINT`. The probe uses `OPENAI_API_KEY` from the environment and keeps the deterministic lane as the scoring source of truth.
+
+The probe has two modes. `aol hosted --check-only` reports configuration without making a network request. A normal run requires the API key and writes the response usage fields, model identifier, provider latency, and response ID when the request succeeds. It does not score the hosted answer against the deterministic oracle.
 
 ## Concept to know
 
@@ -14,11 +16,13 @@ The local experiments establish what the project can infer under controlled exec
 
 ## Result at this checkpoint
 
-The integration lane has not been run. It requires configured model and observability credentials and separate cost and privacy handling.
+The credential-free configuration check ran successfully. Docker is installed, but this machine has no `OPENAI_API_KEY` or `OTEL_EXPORTER_OTLP_ENDPOINT`, so no paid model call or external telemetry export was attempted.
+
+The code path is ready for a credentialed run. The probe follows the official OpenAI API key and Responses API configuration described in the [OpenAI quickstart](https://platform.openai.com/docs/quickstart/make-your-first-api-request).
 
 ## Next step
 
-Choose one provider, define the smallest task adapter, confirm OTLP export, record the actual model and backend versions, and compare trace completeness and field coverage before attempting diagnosis scores.
+Configure one hosted model and, if used, one OTLP endpoint. Run the probe, record model and backend versions, and compare trace completeness and field coverage before attempting diagnosis scores.
 
 ## Work snapshot
 
@@ -27,4 +31,6 @@ deterministic lane -> sealed oracle -> scored diagnosis
 hosted lane        -> OTLP backend -> field/shape inspection first
 ```
 
-The notable boundary is evaluation. The hosted lane can test instrumentation portability; it cannot inherit deterministic correctness labels without a separate task evaluator.
+The notable boundary is evaluation. The hosted lane can test instrumentation portability; it cannot inherit deterministic correctness labels without a separate task evaluator. The current snapshot confirms configuration only.
+
+Artifacts: [local-v0-hosted-probe](../data/published/local-v0-hosted-probe/).

@@ -72,12 +72,22 @@ class JsonlSpanExporter(SpanExporter):
 class TelemetrySession:
     """Own a tracer provider so tests and runs do not share global state."""
 
-    def __init__(self, output_path: Path) -> None:
+    def __init__(self, output_path: Path, otlp_endpoint: str | None = None) -> None:
         self.exporter = JsonlSpanExporter(output_path)
         self.provider = TracerProvider(
             resource=Resource.create({"service.name": "agent-observability-lab"})
         )
         self.provider.add_span_processor(SimpleSpanProcessor(self.exporter))
+        if otlp_endpoint:
+            try:
+                from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+            except ImportError as error:
+                raise RuntimeError(
+                    "OTLP export requires the integration extra: pip install -e '.[integration]'"
+                ) from error
+            self.provider.add_span_processor(
+                SimpleSpanProcessor(OTLPSpanExporter(endpoint=otlp_endpoint))
+            )
         self.tracer = self.provider.get_tracer("agent-observability-lab", "0.1.0")
 
     def shutdown(self) -> None:

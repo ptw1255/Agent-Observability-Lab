@@ -1,0 +1,6 @@
+{
+  "api_key_configured": false,
+  "model": "gpt-5",
+  "otlp_endpoint_configured": false,
+  "response_endpoint": "https://api.openai.com/v1/responses"
+}

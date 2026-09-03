@@ -2,6 +2,7 @@ import json
 
 from agent_observability_lab.runtime import Condition, DeterministicAgent
 from agent_observability_lab.feedback import DuplicateSuppressionFeedback, RetryBudgetFeedback
+from agent_observability_lab.hosted import configuration
 from agent_observability_lab.tasks import ComparisonTask, DocumentTask, InvoiceTask
 from agent_observability_lab.telemetry import TelemetrySession
 
@@ -130,3 +131,11 @@ def test_duplicate_feedback_suppresses_repeated_lookup(tmp_path):
     assert result.answer == "option-a-v1"
     assert len(lookups) == 2
     assert root["attributes"]["agent_observability_lab.feedback_actions"] == "suppress_duplicate_tool"
+
+
+def test_hosted_configuration_is_safe_without_credentials(monkeypatch):
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    config = configuration()
+    assert config["api_key_configured"] is False
+    assert config["model"] == "gpt-5"
+    assert config["otlp_endpoint_configured"] is False
