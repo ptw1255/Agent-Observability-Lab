@@ -30,6 +30,35 @@ The transient case tested recovery after one failure. The retry-loop case tests 
 
 This is the failure pattern most likely to support a runtime action such as stopping after a retry budget is exhausted.
 
+## Why this approach is viable
+
+The deterministic runtime is a valid control lane. It gives us exact ground truth, repeatable failures, stable token values, and known topology. Those controls let us test the telemetry pipeline and analyzer before provider timing and model variability enter the measurement.
+
+The control lane answers this question:
+
+> Can telemetry and an analyzer reconstruct known execution patterns?
+
+It does not answer this question:
+
+> Can telemetry explain inefficient behavior produced by a real model making real tool choices?
+
+The second question requires the hosted-model lane. That lane will use the same boundary contract with one real model adapter and will report its results separately from the deterministic results.
+
+The current design has four validity risks:
+
+- **Script overfitting:** vary retry counts, delays, arguments, and held-out fixtures before treating detector scores as general.
+- **Predetermined behavior:** let the hosted model choose tools so the integration lane tests actual model-selected paths.
+- **Manual span placement:** describe the claim as boundary instrumentation at shared runtime interfaces. The study does not claim that zero instrumentation is required.
+- **Narrow scoring:** complete all five conditions across all three tasks, then test missing attributes and dropped spans.
+
+The evidence path is:
+
+```text
+deterministic control → profile comparisons → 75-run matrix → hosted replication → bounded feedback
+```
+
+The current project is a viable foundation. The deterministic results establish measurement validity. The hosted results will establish whether the findings generalize to real agent execution.
+
 ## Result at this checkpoint
 
 No retry-loop profile comparison has been run yet.
