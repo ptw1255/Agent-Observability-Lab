@@ -16,6 +16,10 @@ The root agent span should end with a failed task outcome.
 
 A retry loop is an execution pattern, not one error. The analyzer needs repeated attempts, repeated failure evidence, and a relationship between those attempts.
 
+The current runtime does not call a model provider. `chat scripted-model` spans come from a local deterministic Python method. Its token counts are fixed test values, and a short local delay supplies measurable duration. Calculator and retrieval operations are also local functions. Retry failures come from controlled `ToolExecutionError` exceptions, which OpenTelemetry records as exception events inside the tool spans.
+
+This makes the current result an instrumentation and analyzer result. It does not measure real model behavior. The hosted-model lane will replace the scripted model adapter after the deterministic comparisons are complete.
+
 P0 can count failed tool spans and observe the terminal root status. P1 can identify the tool and error type. P2 can show that the failures share one logical operation and consume attempts one through three.
 
 The comparison will show whether retry-loop detection depends on custom attempt metadata or can operate from repeated span structure alone.
