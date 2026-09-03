@@ -10,6 +10,7 @@ from pathlib import Path
 from .analyzer import analyze
 from .projections import EvidenceProfile, project_file
 from .oracle import build_oracle
+from .matrix import run_matrix
 from .runtime import Condition, DeterministicAgent
 from .scoring import score_reports
 from .tasks import ComparisonTask, DocumentTask, InvoiceTask
@@ -53,6 +54,10 @@ def main() -> None:
     oracle_parser.add_argument("--condition", default="baseline")
     oracle_parser.add_argument("--output", type=Path, required=True)
 
+    matrix_parser = subparsers.add_parser("matrix", help="run the deterministic experiment matrix")
+    matrix_parser.add_argument("--output", type=Path, required=True)
+    matrix_parser.add_argument("--repetitions", type=int, default=5)
+
     args = parser.parse_args()
     if args.command == "run":
         session = TelemetrySession(args.output)
@@ -92,7 +97,9 @@ def main() -> None:
             args.output.write_text(rendered + "\n", encoding="utf-8")
         else:
             print(rendered)
-    else:
+    elif args.command == "oracle":
         oracle = build_oracle(args.input, args.task, args.condition)
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(oracle, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    else:
+        print(json.dumps(run_matrix(args.output, args.repetitions), indent=2, sort_keys=True))

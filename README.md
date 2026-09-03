@@ -44,7 +44,7 @@ Comparing the same runs across these profiles will show what basic telemetry can
 
 The complete v0 protocol is in [EXPERIMENT_PLAN.md](EXPERIMENT_PLAN.md). The expected learning path, outcome interpretation, and concise variable definitions are in [LEARNING_GUIDE.md](LEARNING_GUIDE.md). Collection, provenance, storage, and project-memory rules are in [DATA_MANAGEMENT.md](DATA_MANAGEMENT.md).
 
-Progress is recorded as numbered checkpoints in the [Journal](Journal/). Start with [Journal.00](Journal/Journal.00.md); [Journal.10](Journal/Journal.10.md) describes the next implementation task. Journal filenames use two-digit numbering so GitHub displays them in numerical order. New checkpoints continue as `Journal.N+1` with zero-padding.
+Progress is recorded as numbered checkpoints in the [Journal](Journal/). Start with [Journal.00](Journal/Journal.00.md); [Journal.11](Journal/Journal.11.md) describes the next implementation task. Journal filenames use two-digit numbering so GitHub displays them in numerical order. New checkpoints continue as `Journal.N+1` with zero-padding.
 
 ## First-slice development
 
@@ -55,7 +55,7 @@ pytest -q
 
 The tests validate span export, parent topology, failure recording, and blind detection. They do not run the planned 75-run experiment.
 
-The current first slice has 23 passing tests, three task types, five execution conditions, evidence projections, scoring utilities, and published baseline, transient-failure, retry-loop, redundant-tool-use, and excessive-path profile comparisons. The full 75-run scoring workflow remains ahead.
+The current first slice has 24 passing tests, three task types, five execution conditions, evidence projections, scoring utilities, and published single-run comparisons plus the complete 75-run local matrix. The next study tests whether findings can become safe feedback signals for the runtime.
 
 ## References
 

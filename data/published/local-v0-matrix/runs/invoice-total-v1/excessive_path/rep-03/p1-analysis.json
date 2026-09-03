@@ -1,0 +1,94 @@
+[
+  {
+    "attempt_numbers": [
+      null
+    ],
+    "duration_ms": 12.199,
+    "error_count": 0,
+    "findings": [
+      {
+        "evidence": "depth, model calls, or output tokens exceeded the local envelope",
+        "span_id": "917e1f12274a53c5",
+        "type": "excessive_execution_path"
+      }
+    ],
+    "input_tokens": 224,
+    "max_depth": 6,
+    "model_call_count": 7,
+    "output_tokens": 360,
+    "parent_edges": [
+      {
+        "child_index": 1,
+        "parent_index": 0
+      },
+      {
+        "child_index": 2,
+        "parent_index": 0
+      },
+      {
+        "child_index": 3,
+        "parent_index": 2
+      },
+      {
+        "child_index": 4,
+        "parent_index": 2
+      },
+      {
+        "child_index": 5,
+        "parent_index": 4
+      },
+      {
+        "child_index": 6,
+        "parent_index": 4
+      },
+      {
+        "child_index": 7,
+        "parent_index": 6
+      },
+      {
+        "child_index": 8,
+        "parent_index": 6
+      },
+      {
+        "child_index": 9,
+        "parent_index": 8
+      },
+      {
+        "child_index": 10,
+        "parent_index": 8
+      },
+      {
+        "child_index": 11,
+        "parent_index": 10
+      },
+      {
+        "child_index": 12,
+        "parent_index": 0
+      },
+      {
+        "child_index": 13,
+        "parent_index": 0
+      }
+    ],
+    "root_status": "UNSET",
+    "sequence": [
+      "invoke_agent deterministic-agent",
+      "chat scripted-model",
+      "plan reflection",
+      "chat scripted-model",
+      "plan reflection",
+      "chat scripted-model",
+      "plan reflection",
+      "chat scripted-model",
+      "plan reflection",
+      "chat scripted-model",
+      "plan reflection",
+      "chat scripted-model",
+      "execute_tool calculator",
+      "chat scripted-model"
+    ],
+    "span_count": 14,
+    "tool_call_count": 1,
+    "trace_id": "2f8da03b390ecea355e617b0f90ddb2e"
+  }
+]

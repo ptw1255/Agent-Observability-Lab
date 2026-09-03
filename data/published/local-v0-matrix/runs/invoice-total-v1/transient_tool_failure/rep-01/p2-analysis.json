@@ -1,0 +1,55 @@
+[
+  {
+    "attempt_numbers": [
+      1,
+      2
+    ],
+    "duration_ms": 8.952,
+    "error_count": 1,
+    "findings": [
+      {
+        "evidence": "tool span ended with error status",
+        "span_id": "d4be377919d2115f",
+        "type": "tool_failure"
+      }
+    ],
+    "input_tokens": 96,
+    "max_depth": 1,
+    "model_call_count": 3,
+    "output_tokens": 58,
+    "parent_edges": [
+      {
+        "child_index": 1,
+        "parent_index": 0
+      },
+      {
+        "child_index": 2,
+        "parent_index": 0
+      },
+      {
+        "child_index": 3,
+        "parent_index": 0
+      },
+      {
+        "child_index": 4,
+        "parent_index": 0
+      },
+      {
+        "child_index": 5,
+        "parent_index": 0
+      }
+    ],
+    "root_status": "UNSET",
+    "sequence": [
+      "invoke_agent deterministic-agent",
+      "chat scripted-model",
+      "execute_tool calculator",
+      "chat scripted-model",
+      "execute_tool calculator",
+      "chat scripted-model"
+    ],
+    "span_count": 6,
+    "tool_call_count": 2,
+    "trace_id": "f87eebf968fa8d869a909c530a5a8301"
+  }
+]

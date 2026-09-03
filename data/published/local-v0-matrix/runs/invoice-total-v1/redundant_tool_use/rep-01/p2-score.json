@@ -1,0 +1,29 @@
+[
+  {
+    "attempt_sequence_match": true,
+    "findings": {
+      "expected": [
+        "candidate_redundant_tool_use"
+      ],
+      "precision": 1.0,
+      "predicted": [
+        "candidate_redundant_tool_use"
+      ],
+      "recall": 1.0
+    },
+    "resource_matches": {
+      "input_tokens": true,
+      "model_call_count": true,
+      "output_tokens": true,
+      "tool_call_count": true
+    },
+    "root_status_match": true,
+    "sequence_exact": true,
+    "sequence_length": {
+      "expected": 5,
+      "predicted": 5
+    },
+    "topology_edge_f1": 1.0,
+    "trace_id": "5a08f57a68d9596f9eb64cd91c9207ed"
+  }
+]

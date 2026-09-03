@@ -135,6 +135,8 @@ def test_redundant_comparison_oracle_captures_duplicate_tool_use(tmp_path):
     assert oracle["expected_findings"] == ["candidate_redundant_tool_use"]
     assert oracle["expected_attempt_numbers"] == [1, 1, 1, 1]
     assert oracle["expected_tool_call_count"] == 4
+    assert oracle["expected_sequence"][4] == "execute_tool local_lookup"
+    assert oracle["expected_sequence"][5] == "execute_tool calculator"
 
 
 def test_excessive_path_oracle_captures_depth_and_cost(tmp_path):

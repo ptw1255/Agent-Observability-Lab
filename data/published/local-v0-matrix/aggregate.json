@@ -1,0 +1,238 @@
+{
+  "condition_count": 5,
+  "experiment": "local-v0-matrix",
+  "profiled_runs": 225,
+  "repetitions_per_pair": 5,
+  "summaries": [
+    {
+      "condition": "baseline",
+      "finding_precision_mean": 1.0,
+      "finding_recall_mean": 1.0,
+      "profile": "p0",
+      "resource_match_rates": {
+        "input_tokens": 0.0,
+        "model_call_count": 1.0,
+        "output_tokens": 0.0,
+        "tool_call_count": 1.0
+      },
+      "run_count": 15,
+      "sequence_exact_rate": 1.0,
+      "topology_edge_f1_mean": 1.0
+    },
+    {
+      "condition": "excessive_path",
+      "finding_precision_mean": 1.0,
+      "finding_recall_mean": 1.0,
+      "profile": "p0",
+      "resource_match_rates": {
+        "input_tokens": 0.0,
+        "max_depth": 1.0,
+        "model_call_count": 1.0,
+        "output_tokens": 0.0,
+        "tool_call_count": 1.0
+      },
+      "run_count": 15,
+      "sequence_exact_rate": 1.0,
+      "topology_edge_f1_mean": 1.0
+    },
+    {
+      "condition": "redundant_tool_use",
+      "finding_precision_mean": 1.0,
+      "finding_recall_mean": 0.0,
+      "profile": "p0",
+      "resource_match_rates": {
+        "input_tokens": 0.0,
+        "model_call_count": 1.0,
+        "output_tokens": 0.0,
+        "tool_call_count": 1.0
+      },
+      "run_count": 15,
+      "sequence_exact_rate": 1.0,
+      "topology_edge_f1_mean": 1.0
+    },
+    {
+      "condition": "retry_loop",
+      "finding_precision_mean": 1.0,
+      "finding_recall_mean": 1.0,
+      "profile": "p0",
+      "resource_match_rates": {
+        "input_tokens": 0.0,
+        "model_call_count": 1.0,
+        "output_tokens": 0.0,
+        "tool_call_count": 1.0
+      },
+      "run_count": 15,
+      "sequence_exact_rate": 1.0,
+      "topology_edge_f1_mean": 1.0
+    },
+    {
+      "condition": "transient_tool_failure",
+      "finding_precision_mean": 1.0,
+      "finding_recall_mean": 1.0,
+      "profile": "p0",
+      "resource_match_rates": {
+        "input_tokens": 0.0,
+        "model_call_count": 1.0,
+        "output_tokens": 0.0,
+        "tool_call_count": 1.0
+      },
+      "run_count": 15,
+      "sequence_exact_rate": 1.0,
+      "topology_edge_f1_mean": 1.0
+    },
+    {
+      "condition": "baseline",
+      "finding_precision_mean": 1.0,
+      "finding_recall_mean": 1.0,
+      "profile": "p1",
+      "resource_match_rates": {
+        "input_tokens": 1.0,
+        "model_call_count": 1.0,
+        "output_tokens": 1.0,
+        "tool_call_count": 1.0
+      },
+      "run_count": 15,
+      "sequence_exact_rate": 1.0,
+      "topology_edge_f1_mean": 1.0
+    },
+    {
+      "condition": "excessive_path",
+      "finding_precision_mean": 1.0,
+      "finding_recall_mean": 1.0,
+      "profile": "p1",
+      "resource_match_rates": {
+        "input_tokens": 1.0,
+        "max_depth": 1.0,
+        "model_call_count": 1.0,
+        "output_tokens": 1.0,
+        "tool_call_count": 1.0
+      },
+      "run_count": 15,
+      "sequence_exact_rate": 1.0,
+      "topology_edge_f1_mean": 1.0
+    },
+    {
+      "condition": "redundant_tool_use",
+      "finding_precision_mean": 1.0,
+      "finding_recall_mean": 0.0,
+      "profile": "p1",
+      "resource_match_rates": {
+        "input_tokens": 1.0,
+        "model_call_count": 1.0,
+        "output_tokens": 1.0,
+        "tool_call_count": 1.0
+      },
+      "run_count": 15,
+      "sequence_exact_rate": 1.0,
+      "topology_edge_f1_mean": 1.0
+    },
+    {
+      "condition": "retry_loop",
+      "finding_precision_mean": 1.0,
+      "finding_recall_mean": 1.0,
+      "profile": "p1",
+      "resource_match_rates": {
+        "input_tokens": 1.0,
+        "model_call_count": 1.0,
+        "output_tokens": 1.0,
+        "tool_call_count": 1.0
+      },
+      "run_count": 15,
+      "sequence_exact_rate": 1.0,
+      "topology_edge_f1_mean": 1.0
+    },
+    {
+      "condition": "transient_tool_failure",
+      "finding_precision_mean": 1.0,
+      "finding_recall_mean": 1.0,
+      "profile": "p1",
+      "resource_match_rates": {
+        "input_tokens": 1.0,
+        "model_call_count": 1.0,
+        "output_tokens": 1.0,
+        "tool_call_count": 1.0
+      },
+      "run_count": 15,
+      "sequence_exact_rate": 1.0,
+      "topology_edge_f1_mean": 1.0
+    },
+    {
+      "condition": "baseline",
+      "finding_precision_mean": 1.0,
+      "finding_recall_mean": 1.0,
+      "profile": "p2",
+      "resource_match_rates": {
+        "input_tokens": 1.0,
+        "model_call_count": 1.0,
+        "output_tokens": 1.0,
+        "tool_call_count": 1.0
+      },
+      "run_count": 15,
+      "sequence_exact_rate": 1.0,
+      "topology_edge_f1_mean": 1.0
+    },
+    {
+      "condition": "excessive_path",
+      "finding_precision_mean": 1.0,
+      "finding_recall_mean": 1.0,
+      "profile": "p2",
+      "resource_match_rates": {
+        "input_tokens": 1.0,
+        "max_depth": 1.0,
+        "model_call_count": 1.0,
+        "output_tokens": 1.0,
+        "tool_call_count": 1.0
+      },
+      "run_count": 15,
+      "sequence_exact_rate": 1.0,
+      "topology_edge_f1_mean": 1.0
+    },
+    {
+      "condition": "redundant_tool_use",
+      "finding_precision_mean": 1.0,
+      "finding_recall_mean": 1.0,
+      "profile": "p2",
+      "resource_match_rates": {
+        "input_tokens": 1.0,
+        "model_call_count": 1.0,
+        "output_tokens": 1.0,
+        "tool_call_count": 1.0
+      },
+      "run_count": 15,
+      "sequence_exact_rate": 1.0,
+      "topology_edge_f1_mean": 1.0
+    },
+    {
+      "condition": "retry_loop",
+      "finding_precision_mean": 1.0,
+      "finding_recall_mean": 1.0,
+      "profile": "p2",
+      "resource_match_rates": {
+        "input_tokens": 1.0,
+        "model_call_count": 1.0,
+        "output_tokens": 1.0,
+        "tool_call_count": 1.0
+      },
+      "run_count": 15,
+      "sequence_exact_rate": 1.0,
+      "topology_edge_f1_mean": 1.0
+    },
+    {
+      "condition": "transient_tool_failure",
+      "finding_precision_mean": 1.0,
+      "finding_recall_mean": 1.0,
+      "profile": "p2",
+      "resource_match_rates": {
+        "input_tokens": 1.0,
+        "model_call_count": 1.0,
+        "output_tokens": 1.0,
+        "tool_call_count": 1.0
+      },
+      "run_count": 15,
+      "sequence_exact_rate": 1.0,
+      "topology_edge_f1_mean": 1.0
+    }
+  ],
+  "task_condition_runs": 75,
+  "task_count": 3
+}

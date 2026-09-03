@@ -1,10 +1,10 @@
 # Journal.10 — Repeated local matrix and cross-condition synthesis
 
-## What we will do
+## What we did
 
-Run the planned deterministic matrix with five repetitions for each of the three tasks and five conditions. Store each raw trace and its oracle, then produce P0, P1, and P2 analyses and scores for every run.
+We implemented and ran the deterministic matrix with five repetitions for each of the three tasks and five conditions. That produced 75 task-condition runs. Each run has a raw trace, oracle, P0/P1/P2 projections, analyses, and scores. The three projections produced 225 profiled analyses in total.
 
-Aggregate the results by condition and evidence profile. Report sequence recovery, topology recovery, resource measurement, finding precision and recall, attempt attribution, and run-to-run variation.
+The matrix command also writes machine-readable `rows.json` and `aggregate.json` files. The aggregate groups results by evidence profile and condition, reporting sequence recovery, topology recovery, resource measurement, and finding precision and recall.
 
 ## Concept to know
 
@@ -12,31 +12,41 @@ A single trace demonstrates that a detector can work once. Repeated trials test 
 
 The matrix also creates controls. Baseline runs show what normal execution looks like. Injected conditions show whether the analyzer separates a known failure mode from that normal path. The oracle supplies labels for evaluation; it is not evidence available to the analyzer during inference.
 
-## Why we are doing it
+## Why we did it
 
-The first profile comparisons established local examples: custom argument identity mattered for duplicate detection, while structure was enough for the deliberately excessive path. The matrix tests whether those conclusions survive across tasks, conditions, and repeated runs.
+The first profile comparisons established local examples: custom argument identity mattered for duplicate detection, while structure was enough for the deliberately excessive path. The matrix tested whether those conclusions survived across tasks, conditions, and repeated runs.
 
-This is the point where the project moves from “can this trace be explained?” to “how reliably can the same evidence support an explanation?”
+This moved the project from “can this trace be explained?” to “how reliably can the same evidence support an explanation?”
 
 ## Result at this checkpoint
 
-The repeated matrix has not been run yet. The existing published comparisons are single-run demonstrations and should not be treated as estimates of detector performance.
+All 75 task-condition runs completed, and all 225 profile scores were generated. For every profile and condition, sequence exactness and topology edge F1 were 1.0. Finding precision and recall were also 1.0 for the injected conditions.
+
+The profile differences were consistent with the single-run experiments:
+
+- P0 recovered execution shape and findings, but not token totals or custom attempt metadata.
+- P1 recovered the standard token totals and all findings except redundant-tool use, because it lacked argument fingerprints.
+- P2 recovered the standard measurements plus custom correlation fields and detected redundant use across all three task types.
+
+The repeated matrix supports the earlier conclusions within this deterministic harness. It does not estimate real-world model reliability: every run uses the same scripted model, fixtures, timing pattern, and injected fault logic.
 
 ## Next step
 
-Implement the matrix runner and aggregation report, run the 75 deterministic trials, inspect failures in the collection workflow, and record the first cross-condition findings in Journal.11.
+Use the aggregate data to write the first cross-condition interpretation, then design a small feedback-signal experiment that asks whether an agent runtime could consume these observability findings to change behavior.
 
 ## Work snapshot
 
-For each matrix checkpoint, this section will show one representative trace shape and the measurements that matter. The snapshot should make it easy to see the difference between a normal path and an injected path before reading the aggregate tables.
+The matrix snapshot shows one row per profile and condition, with repeated runs collapsed into rates:
 
-```text
-task-condition / repetition
-├─ representative span tree
-├─ sequence and topology summary
-├─ model calls / tool calls
-├─ input tokens / output tokens / duration
-└─ findings and the evidence supporting them
+| Profile | Condition | Runs | Sequence | Topology F1 | Finding P/R |
+|---|---|---:|---:|---:|---:|
+| P0 | baseline | 15 | 1.0 | 1.0 | 1.0 / 1.0 |
+| P0 | transient / retry / excessive | 15 each | 1.0 | 1.0 | 1.0 / 1.0 |
+| P0 | redundant | 15 | 1.0 | 1.0 | 1.0 / 0.0 |
+| P1 | redundant | 15 | 1.0 | 1.0 | 1.0 / 0.0 |
+| P2 | every condition | 15 each | 1.0 | 1.0 | 1.0 / 1.0 |
 ```
 
-The notable point to preserve is the link between a finding and its evidence. For example, a retry finding should point to repeated failed tool spans and attempt numbers; an excessive-path finding should point to depth, call count, token cost, or latency. A label without that evidence is not a useful observability result.
+Notable evidence: redundancy is the one finding that requires a custom semantic correlation field. The other findings can be reconstructed from span structure, status, and standard measurements in this harness. The full per-run evidence is in the published matrix artifacts.
+
+Artifacts: [local-v0-matrix](../data/published/local-v0-matrix/).

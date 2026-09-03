@@ -1,0 +1,49 @@
+{
+  "condition": "transient_tool_failure",
+  "expected_attempt_numbers": [
+    1,
+    2
+  ],
+  "expected_findings": [
+    "tool_failure"
+  ],
+  "expected_input_tokens": 96,
+  "expected_model_call_count": 3,
+  "expected_outcome": "success",
+  "expected_output_tokens": 58,
+  "expected_parent_edges": [
+    {
+      "child_index": 1,
+      "parent_index": 0
+    },
+    {
+      "child_index": 2,
+      "parent_index": 0
+    },
+    {
+      "child_index": 3,
+      "parent_index": 0
+    },
+    {
+      "child_index": 4,
+      "parent_index": 0
+    },
+    {
+      "child_index": 5,
+      "parent_index": 0
+    }
+  ],
+  "expected_root_status": "UNSET",
+  "expected_sequence": [
+    "invoke_agent deterministic-agent",
+    "chat scripted-model",
+    "execute_tool calculator",
+    "chat scripted-model",
+    "execute_tool calculator",
+    "chat scripted-model"
+  ],
+  "expected_tool_call_count": 2,
+  "run_id": "a3edbd26-6ae9-4973-a4de-2b0862fda49b",
+  "task_id": "invoice-total-v1",
+  "trace_id": "f41aeb81f545d8d771a0d33b2da2e2be"
+}

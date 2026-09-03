@@ -1,0 +1,49 @@
+{
+  "condition": "transient_tool_failure",
+  "expected_attempt_numbers": [
+    1,
+    2
+  ],
+  "expected_findings": [
+    "tool_failure"
+  ],
+  "expected_input_tokens": 96,
+  "expected_model_call_count": 3,
+  "expected_outcome": "success",
+  "expected_output_tokens": 62,
+  "expected_parent_edges": [
+    {
+      "child_index": 1,
+      "parent_index": 0
+    },
+    {
+      "child_index": 2,
+      "parent_index": 0
+    },
+    {
+      "child_index": 3,
+      "parent_index": 0
+    },
+    {
+      "child_index": 4,
+      "parent_index": 0
+    },
+    {
+      "child_index": 5,
+      "parent_index": 0
+    }
+  ],
+  "expected_root_status": "UNSET",
+  "expected_sequence": [
+    "invoke_agent deterministic-agent",
+    "chat scripted-model",
+    "execute_tool local_retrieval",
+    "chat scripted-model",
+    "execute_tool local_retrieval",
+    "chat scripted-model"
+  ],
+  "expected_tool_call_count": 2,
+  "run_id": "72920820-0e6a-4942-abc4-f0de49672347",
+  "task_id": "document-answer-v1",
+  "trace_id": "17c03bb4eb51f73b3aa1d6d99cd863a9"
+}

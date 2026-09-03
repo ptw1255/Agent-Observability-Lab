@@ -1,0 +1,81 @@
+[
+  {
+    "attempt_numbers": [
+      null,
+      null,
+      null
+    ],
+    "duration_ms": 10.369,
+    "error_count": 3,
+    "findings": [
+      {
+        "evidence": "tool span ended with error status",
+        "span_id": "75e8ec297aff6d93",
+        "type": "tool_failure"
+      },
+      {
+        "evidence": "tool span ended with error status",
+        "span_id": "b535e207618403bb",
+        "type": "tool_failure"
+      },
+      {
+        "evidence": "tool span ended with error status",
+        "span_id": "4f0ac9ad90072f76",
+        "type": "tool_failure"
+      },
+      {
+        "evidence": "repeated tool failures consumed multiple attempts",
+        "span_id": "4f0ac9ad90072f76",
+        "type": "retry_loop"
+      }
+    ],
+    "input_tokens": 128,
+    "max_depth": 1,
+    "model_call_count": 4,
+    "output_tokens": 84,
+    "parent_edges": [
+      {
+        "child_index": 1,
+        "parent_index": 0
+      },
+      {
+        "child_index": 2,
+        "parent_index": 0
+      },
+      {
+        "child_index": 3,
+        "parent_index": 0
+      },
+      {
+        "child_index": 4,
+        "parent_index": 0
+      },
+      {
+        "child_index": 5,
+        "parent_index": 0
+      },
+      {
+        "child_index": 6,
+        "parent_index": 0
+      },
+      {
+        "child_index": 7,
+        "parent_index": 0
+      }
+    ],
+    "root_status": "ERROR",
+    "sequence": [
+      "invoke_agent deterministic-agent",
+      "chat scripted-model",
+      "execute_tool local_retrieval",
+      "chat scripted-model",
+      "execute_tool local_retrieval",
+      "chat scripted-model",
+      "execute_tool local_retrieval",
+      "chat scripted-model"
+    ],
+    "span_count": 8,
+    "tool_call_count": 3,
+    "trace_id": "5a179390829c655d056867ea6774ff12"
+  }
+]

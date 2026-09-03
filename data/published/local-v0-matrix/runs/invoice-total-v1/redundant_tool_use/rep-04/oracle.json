@@ -1,0 +1,44 @@
+{
+  "condition": "redundant_tool_use",
+  "expected_attempt_numbers": [
+    1,
+    1
+  ],
+  "expected_findings": [
+    "candidate_redundant_tool_use"
+  ],
+  "expected_input_tokens": 64,
+  "expected_model_call_count": 2,
+  "expected_outcome": "success",
+  "expected_output_tokens": 40,
+  "expected_parent_edges": [
+    {
+      "child_index": 1,
+      "parent_index": 0
+    },
+    {
+      "child_index": 2,
+      "parent_index": 0
+    },
+    {
+      "child_index": 3,
+      "parent_index": 0
+    },
+    {
+      "child_index": 4,
+      "parent_index": 0
+    }
+  ],
+  "expected_root_status": "UNSET",
+  "expected_sequence": [
+    "invoke_agent deterministic-agent",
+    "chat scripted-model",
+    "execute_tool calculator",
+    "execute_tool calculator",
+    "chat scripted-model"
+  ],
+  "expected_tool_call_count": 2,
+  "run_id": "7fdb8921-7a52-4cb7-a256-2d8879097e12",
+  "task_id": "invoice-total-v1",
+  "trace_id": "77037d09a65aecd223b8986b48af04b2"
+}

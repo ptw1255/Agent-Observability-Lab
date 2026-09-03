@@ -1,0 +1,29 @@
+[
+  {
+    "attempt_sequence_match": false,
+    "findings": {
+      "expected": [
+        "tool_failure"
+      ],
+      "precision": 1.0,
+      "predicted": [
+        "tool_failure"
+      ],
+      "recall": 1.0
+    },
+    "resource_matches": {
+      "input_tokens": true,
+      "model_call_count": true,
+      "output_tokens": true,
+      "tool_call_count": true
+    },
+    "root_status_match": true,
+    "sequence_exact": true,
+    "sequence_length": {
+      "expected": 6,
+      "predicted": 6
+    },
+    "topology_edge_f1": 1.0,
+    "trace_id": "06212af6e85081632c7560671a58ec98"
+  }
+]

@@ -143,6 +143,36 @@ EXCESSIVE_INVOICE_EDGES = [
 ]
 
 
+def _root_edges(sequence: list[str]) -> list[dict[str, int]]:
+    return [
+        {"parent_index": 0, "child_index": index}
+        for index in range(1, len(sequence))
+    ]
+
+
+def _excessive_graph(task_id: str) -> tuple[list[str], list[dict[str, int]]]:
+    base = BASELINE_GRAPHS[task_id]
+    reflection: list[str] = []
+    edges: list[dict[str, int]] = [{"parent_index": 0, "child_index": 1}]
+    for depth in range(1, 6):
+        reflection_index = 2 + (depth - 1) * 2
+        model_index = reflection_index + 1
+        reflection.extend(["plan reflection", "chat scripted-model"])
+        parent = 0 if depth == 1 else reflection_index - 2
+        edges.extend([
+            {"parent_index": parent, "child_index": reflection_index},
+            {"parent_index": reflection_index, "child_index": model_index},
+        ])
+    suffix = base[2:]
+    sequence = base[:2] + reflection + suffix
+    suffix_start = 2 + len(reflection)
+    edges.extend(
+        {"parent_index": 0, "child_index": suffix_start + index}
+        for index in range(len(suffix))
+    )
+    return sequence, edges
+
+
 def build_oracle(trace_path: Path, task_id: str, condition: str) -> dict[str, object]:
     """Build one oracle from a raw trace and a known deterministic task graph."""
     if task_id not in BASELINE_GRAPHS:
@@ -162,41 +192,76 @@ def build_oracle(trace_path: Path, task_id: str, condition: str) -> dict[str, ob
     }
     if len(run_ids) != 1:
         raise ValueError("oracle builder expects exactly one opaque run ID")
+    base_resources = BASELINE_RESOURCES[task_id]
+    expected_findings: list[str] = []
     if condition == "baseline":
         expected_sequence = BASELINE_GRAPHS[task_id]
-        resources = BASELINE_RESOURCES[task_id]
-        expected_findings = []
-        expected_attempt_numbers = [
-            1 for name in expected_sequence if name.startswith("execute_tool ")
-        ]
-    elif task_id == "invoice-total-v1" and condition == "transient_tool_failure":
-        expected_sequence = TRANSIENT_INVOICE_GRAPH
-        resources = TRANSIENT_INVOICE_RESOURCES
+        resources = base_resources
+    elif condition == "transient_tool_failure":
+        tool_index = next(
+            index for index, name in enumerate(BASELINE_GRAPHS[task_id])
+            if name.startswith("execute_tool ")
+        )
+        expected_sequence = (
+            BASELINE_GRAPHS[task_id][:tool_index]
+            + [BASELINE_GRAPHS[task_id][tool_index], "chat scripted-model",
+               BASELINE_GRAPHS[task_id][tool_index]]
+            + BASELINE_GRAPHS[task_id][tool_index + 1:]
+        )
+        resources = {
+            "expected_model_call_count": base_resources["expected_model_call_count"] + 1,
+            "expected_tool_call_count": base_resources["expected_tool_call_count"] + 1,
+            "expected_input_tokens": base_resources["expected_input_tokens"] + 32,
+            "expected_output_tokens": base_resources["expected_output_tokens"] + 18,
+        }
         expected_findings = ["tool_failure"]
-        expected_attempt_numbers = [1, 2]
-    elif task_id == "invoice-total-v1" and condition == "retry_loop":
-        expected_sequence = RETRY_INVOICE_GRAPH
-        resources = RETRY_INVOICE_RESOURCES
+    elif condition == "retry_loop":
+        tool_name = next(name for name in BASELINE_GRAPHS[task_id] if name.startswith("execute_tool "))
+        expected_sequence = [BASELINE_GRAPHS[task_id][0], BASELINE_GRAPHS[task_id][1]]
+        for _ in range(3):
+            expected_sequence.extend([tool_name, "chat scripted-model"])
+        resources = {
+            "expected_model_call_count": 4,
+            "expected_tool_call_count": 3,
+            "expected_input_tokens": 128,
+            "expected_output_tokens": 84,
+        }
         expected_findings = ["tool_failure", "retry_loop"]
-        expected_attempt_numbers = [1, 2, 3]
-    elif task_id == "two-option-comparison-v1" and condition == "redundant_tool_use":
-        expected_sequence = REDUNDANT_COMPARISON_GRAPH
-        resources = REDUNDANT_COMPARISON_RESOURCES
+    elif condition == "redundant_tool_use":
+        expected_sequence = list(BASELINE_GRAPHS[task_id])
+        tool_indices = [
+            index for index, name in enumerate(expected_sequence)
+            if name.startswith("execute_tool ")
+        ]
+        duplicate_index = tool_indices[-2] if task_id == "two-option-comparison-v1" else tool_indices[0]
+        expected_sequence.insert(duplicate_index + 1, expected_sequence[duplicate_index])
+        resources = {
+            **base_resources,
+            "expected_tool_call_count": base_resources["expected_tool_call_count"] + 1,
+        }
         expected_findings = ["candidate_redundant_tool_use"]
-        expected_attempt_numbers = [1, 1, 1, 1]
-    elif task_id == "invoice-total-v1" and condition == "excessive_path":
-        expected_sequence = EXCESSIVE_INVOICE_GRAPH
-        resources = EXCESSIVE_INVOICE_RESOURCES
+    elif condition == "excessive_path":
+        expected_sequence, expected_parent_edges = _excessive_graph(task_id)
+        resources = {
+            **base_resources,
+            "expected_model_call_count": base_resources["expected_model_call_count"] + 5,
+            "expected_max_depth": 6,
+            "expected_input_tokens": base_resources["expected_input_tokens"] + 160,
+            "expected_output_tokens": base_resources["expected_output_tokens"] + 320,
+        }
         expected_findings = ["excessive_execution_path"]
-        expected_attempt_numbers = [1]
     else:
         raise ValueError(f"oracle graph not yet defined: {task_id}/{condition}")
-    expected_parent_edges = [
-        {"parent_index": 0, "child_index": index}
-        for index in range(1, len(expected_sequence))
+    if condition != "excessive_path":
+        expected_parent_edges = _root_edges(expected_sequence)
+    expected_attempt_numbers = [
+        1 for name in expected_sequence if name.startswith("execute_tool ")
     ]
-    if task_id == "invoice-total-v1" and condition == "excessive_path":
-        expected_parent_edges = EXCESSIVE_INVOICE_EDGES
+    if condition == "transient_tool_failure":
+        tool_count = len(expected_attempt_numbers)
+        expected_attempt_numbers = list(range(1, tool_count + 1)) if task_id != "two-option-comparison-v1" else [1, 2, 1, 1]
+    elif condition == "retry_loop":
+        expected_attempt_numbers = [1, 2, 3]
     return {
         "trace_id": next(iter(trace_ids)),
         "run_id": next(iter(run_ids)),

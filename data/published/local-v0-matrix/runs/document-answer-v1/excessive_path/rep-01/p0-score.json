@@ -1,0 +1,30 @@
+[
+  {
+    "attempt_sequence_match": false,
+    "findings": {
+      "expected": [
+        "excessive_execution_path"
+      ],
+      "precision": 1.0,
+      "predicted": [
+        "excessive_execution_path"
+      ],
+      "recall": 1.0
+    },
+    "resource_matches": {
+      "input_tokens": false,
+      "max_depth": true,
+      "model_call_count": true,
+      "output_tokens": false,
+      "tool_call_count": true
+    },
+    "root_status_match": true,
+    "sequence_exact": true,
+    "sequence_length": {
+      "expected": 14,
+      "predicted": 14
+    },
+    "topology_edge_f1": 1.0,
+    "trace_id": "f2ef184a1c76f4a0a5b2e40595e7ac8e"
+  }
+]
