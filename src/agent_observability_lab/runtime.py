@@ -11,7 +11,7 @@ from enum import StrEnum
 from opentelemetry import trace
 from opentelemetry.trace import SpanKind, Status, StatusCode
 
-from .feedback import RetryBudgetFeedback
+from .feedback import DuplicateSuppressionFeedback, RetryBudgetFeedback
 from .tasks import ComparisonTask, DocumentTask, InvoiceTask
 
 
@@ -47,10 +47,15 @@ def _fingerprint(arguments: dict[str, object]) -> str:
 class DeterministicAgent:
     """A tiny model/tool loop instrumented at reusable boundaries only."""
 
-    def __init__(self, tracer: trace.Tracer, feedback: RetryBudgetFeedback | None = None) -> None:
+    def __init__(
+        self,
+        tracer: trace.Tracer,
+        feedback: RetryBudgetFeedback | DuplicateSuppressionFeedback | None = None,
+    ) -> None:
         self.tracer = tracer
         self.feedback = feedback
         self._failed_once: set[str] = set()
+        self._feedback_actions: list[str] = []
 
     def _model_call(self, phase: str, run_id: str, output_tokens: int = 24) -> None:
         with self.tracer.start_as_current_span(
@@ -112,6 +117,12 @@ class DeterministicAgent:
         logical_operation_id: str = "document-retrieval",
     ) -> str:
         arguments = {"document_id": task.document_id, "query": task.query}
+        fingerprint = _fingerprint(arguments)
+        if isinstance(self.feedback, DuplicateSuppressionFeedback):
+            cached = self.feedback.cached_result(fingerprint)
+            if cached is not None:
+                self._feedback_actions.append("suppress_duplicate_tool")
+                return str(cached)
         with self.tracer.start_as_current_span(
             "execute_tool local_retrieval",
             kind=SpanKind.INTERNAL,
@@ -122,7 +133,7 @@ class DeterministicAgent:
                 "agent_observability_lab.run_id": run_id,
                 "agent_observability_lab.logical_operation_id": logical_operation_id,
                 "agent_observability_lab.attempt_number": attempt,
-                "agent_observability_lab.argument_fingerprint": _fingerprint(arguments),
+                "agent_observability_lab.argument_fingerprint": fingerprint,
             },
         ) as span:
             time.sleep(0.001)
@@ -132,7 +143,10 @@ class DeterministicAgent:
                 span.set_status(Status(StatusCode.ERROR, str(error)))
                 span.set_attribute("error.type", "tool_unavailable")
                 raise error
-            return task.document_text
+            result = task.document_text
+        if isinstance(self.feedback, DuplicateSuppressionFeedback):
+            self.feedback.record_success(fingerprint, result)
+        return result
 
     def _excessive_reflection(self, run_id: str, depth: int, max_depth: int) -> None:
         """Create an intentionally deep but deterministic planning path."""
@@ -234,6 +248,12 @@ class DeterministicAgent:
         logical_operation_id: str,
     ) -> dict[str, float | str]:
         arguments = {"option_id": option_id, "query": task.query}
+        fingerprint = _fingerprint(arguments)
+        if isinstance(self.feedback, DuplicateSuppressionFeedback):
+            cached = self.feedback.cached_result(fingerprint)
+            if cached is not None:
+                self._feedback_actions.append("suppress_duplicate_tool")
+                return cached  # type: ignore[return-value]
         with self.tracer.start_as_current_span(
             "execute_tool local_lookup",
             kind=SpanKind.INTERNAL,
@@ -244,7 +264,7 @@ class DeterministicAgent:
                 "agent_observability_lab.run_id": run_id,
                 "agent_observability_lab.logical_operation_id": logical_operation_id,
                 "agent_observability_lab.attempt_number": attempt,
-                "agent_observability_lab.argument_fingerprint": _fingerprint(arguments),
+                "agent_observability_lab.argument_fingerprint": fingerprint,
             },
         ) as span:
             time.sleep(0.001)
@@ -254,7 +274,10 @@ class DeterministicAgent:
                 span.set_status(Status(StatusCode.ERROR, str(error)))
                 span.set_attribute("error.type", "tool_unavailable")
                 raise error
-            return task.option(option_id)
+            result = task.option(option_id)
+        if isinstance(self.feedback, DuplicateSuppressionFeedback):
+            self.feedback.record_success(fingerprint, result)
+        return result
 
     def _comparison_calculator(
         self,
@@ -387,4 +410,9 @@ class DeterministicAgent:
                 answer = None
             else:
                 root.set_attribute("agent_observability_lab.task_outcome", "success")
+            if self._feedback_actions:
+                root.set_attribute(
+                    "agent_observability_lab.feedback_actions",
+                    ",".join(self._feedback_actions),
+                )
             return RunResult(run_id, task.task_id, condition, answer)

@@ -17,3 +17,16 @@ class RetryBudgetFeedback:
     def observe_tool_failure(self, logical_operation_id: str) -> bool:
         self._failures[logical_operation_id] += 1
         return self._failures[logical_operation_id] >= self.failure_limit
+
+
+class DuplicateSuppressionFeedback:
+    """Reuse a successful read-only tool result for an identical request."""
+
+    def __init__(self) -> None:
+        self._results: dict[str, object] = {}
+
+    def cached_result(self, argument_fingerprint: str) -> object | None:
+        return self._results.get(argument_fingerprint)
+
+    def record_success(self, argument_fingerprint: str, result: object) -> None:
+        self._results[argument_fingerprint] = result

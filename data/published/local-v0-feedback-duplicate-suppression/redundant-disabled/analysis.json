@@ -1,0 +1,62 @@
+[
+  {
+    "attempt_numbers": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "duration_ms": 11.026,
+    "error_count": 0,
+    "findings": [
+      {
+        "evidence": "successful tool calls share an argument fingerprint",
+        "span_id": "b056a4c5ea22b558",
+        "type": "candidate_redundant_tool_use"
+      }
+    ],
+    "input_tokens": 64,
+    "max_depth": 1,
+    "model_call_count": 2,
+    "output_tokens": 40,
+    "parent_edges": [
+      {
+        "child_index": 1,
+        "parent_index": 0
+      },
+      {
+        "child_index": 2,
+        "parent_index": 0
+      },
+      {
+        "child_index": 3,
+        "parent_index": 0
+      },
+      {
+        "child_index": 4,
+        "parent_index": 0
+      },
+      {
+        "child_index": 5,
+        "parent_index": 0
+      },
+      {
+        "child_index": 6,
+        "parent_index": 0
+      }
+    ],
+    "root_status": "UNSET",
+    "sequence": [
+      "invoke_agent deterministic-agent",
+      "chat scripted-model",
+      "execute_tool local_lookup",
+      "execute_tool local_lookup",
+      "execute_tool local_lookup",
+      "execute_tool calculator",
+      "chat scripted-model"
+    ],
+    "span_count": 7,
+    "tool_call_count": 4,
+    "trace_id": "21105610d70e05831c56f2d1841eb9c0"
+  }
+]

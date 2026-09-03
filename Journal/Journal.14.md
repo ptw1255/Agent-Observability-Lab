@@ -32,6 +32,7 @@ The strongest result is the evidence-profile comparison:
 - Standard model/tool and token attributes made resource use measurable.
 - Redundant tool use was not detectable from P0 or P1 in this setup. P2’s argument fingerprint enabled the duplicate finding across the matrix.
 - The five repetitions reproduced the same conclusions, so these results are stable within the deterministic harness.
+- The duplicate-suppression intervention removed the injected repeated lookup while preserving the baseline comparison path and answer.
 
 The feedback result is also meaningful but narrow. Stopping a terminal retry loop after two failures reduced the invoice case from 3 tool calls, 4 model calls, and 84 output tokens to 2 tool calls, 2 model calls, and 44 output tokens. The task remained explicitly failed. Feedback did not change transient recovery or the required two-lookup comparison control.
 
@@ -47,7 +48,7 @@ The correct interim conclusion is: **runtime telemetry can provide machine-reada
 
 ## Next step
 
-Implement duplicate-work suppression as the next control experiment, then run a small hosted-model or real-OTLP integration lane only after the local policy behavior is understood. Keep the integration lane separate from the deterministic evidence claims.
+Run a small hosted-model or real-OTLP integration lane. Keep the integration lane separate from the deterministic evidence claims.
 
 ## Work snapshot
 

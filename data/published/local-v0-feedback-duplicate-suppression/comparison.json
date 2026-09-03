@@ -1,0 +1,56 @@
+[
+  {
+    "answer": "option-a-v1",
+    "case": "baseline-enabled",
+    "feedback_actions": null,
+    "findings": [],
+    "model_call_count": 2,
+    "outcome": "success",
+    "sequence": [
+      "invoke_agent deterministic-agent",
+      "chat scripted-model",
+      "execute_tool local_lookup",
+      "execute_tool local_lookup",
+      "execute_tool calculator",
+      "chat scripted-model"
+    ],
+    "tool_call_count": 3
+  },
+  {
+    "answer": "option-a-v1",
+    "case": "redundant-disabled",
+    "feedback_actions": null,
+    "findings": [
+      "candidate_redundant_tool_use"
+    ],
+    "model_call_count": 2,
+    "outcome": "success",
+    "sequence": [
+      "invoke_agent deterministic-agent",
+      "chat scripted-model",
+      "execute_tool local_lookup",
+      "execute_tool local_lookup",
+      "execute_tool local_lookup",
+      "execute_tool calculator",
+      "chat scripted-model"
+    ],
+    "tool_call_count": 4
+  },
+  {
+    "answer": "option-a-v1",
+    "case": "redundant-enabled",
+    "feedback_actions": "suppress_duplicate_tool",
+    "findings": [],
+    "model_call_count": 2,
+    "outcome": "success",
+    "sequence": [
+      "invoke_agent deterministic-agent",
+      "chat scripted-model",
+      "execute_tool local_lookup",
+      "execute_tool local_lookup",
+      "execute_tool calculator",
+      "chat scripted-model"
+    ],
+    "tool_call_count": 3
+  }
+]

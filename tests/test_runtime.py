@@ -1,7 +1,7 @@
 import json
 
 from agent_observability_lab.runtime import Condition, DeterministicAgent
-from agent_observability_lab.feedback import RetryBudgetFeedback
+from agent_observability_lab.feedback import DuplicateSuppressionFeedback, RetryBudgetFeedback
 from agent_observability_lab.tasks import ComparisonTask, DocumentTask, InvoiceTask
 from agent_observability_lab.telemetry import TelemetrySession
 
@@ -113,3 +113,20 @@ def test_retry_feedback_stops_before_third_failed_attempt(tmp_path):
     assert len(tools) == 2
     root = next(record for record in records if record["name"].startswith("invoke_agent"))
     assert root["attributes"]["agent_observability_lab.feedback_action"] == "stop_retry_loop"
+
+
+def test_duplicate_feedback_suppresses_repeated_lookup(tmp_path):
+    output = tmp_path / "duplicate-feedback.jsonl"
+    session = TelemetrySession(output)
+    try:
+        result = DeterministicAgent(
+            session.tracer, feedback=DuplicateSuppressionFeedback()
+        ).run(ComparisonTask(), Condition.REDUNDANT_TOOL_USE, "duplicate-feedback-run")
+    finally:
+        session.shutdown()
+    records = [json.loads(line) for line in output.read_text().splitlines()]
+    lookups = [record for record in records if record["name"] == "execute_tool local_lookup"]
+    root = next(record for record in records if record["name"].startswith("invoke_agent"))
+    assert result.answer == "option-a-v1"
+    assert len(lookups) == 2
+    assert root["attributes"]["agent_observability_lab.feedback_actions"] == "suppress_duplicate_tool"

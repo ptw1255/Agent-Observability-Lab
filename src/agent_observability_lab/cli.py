@@ -8,7 +8,7 @@ import uuid
 from pathlib import Path
 
 from .analyzer import analyze
-from .feedback import RetryBudgetFeedback
+from .feedback import DuplicateSuppressionFeedback, RetryBudgetFeedback
 from .projections import EvidenceProfile, project_file
 from .oracle import build_oracle
 from .matrix import run_matrix
@@ -36,7 +36,7 @@ def main() -> None:
     )
     run_parser.add_argument(
         "--feedback",
-        choices=["none", "retry_budget"],
+        choices=["none", "retry_budget", "duplicate_suppression"],
         default="none",
         help="optional evidence-driven runtime policy",
     )
@@ -75,7 +75,11 @@ def main() -> None:
                 "document-answer-v1": DocumentTask,
                 "two-option-comparison-v1": ComparisonTask,
             }[args.task]()
-            feedback = RetryBudgetFeedback() if args.feedback == "retry_budget" else None
+            feedback = {
+                "none": None,
+                "retry_budget": RetryBudgetFeedback(),
+                "duplicate_suppression": DuplicateSuppressionFeedback(),
+            }[args.feedback]
             result = DeterministicAgent(session.tracer, feedback=feedback).run(
                 task, Condition(args.condition), run_id
             )
