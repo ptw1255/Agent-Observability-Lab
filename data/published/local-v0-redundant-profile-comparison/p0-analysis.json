@@ -1,0 +1,56 @@
+[
+  {
+    "attempt_numbers": [
+      null,
+      null,
+      null,
+      null
+    ],
+    "duration_ms": 11.418,
+    "error_count": 0,
+    "findings": [],
+    "input_tokens": 0,
+    "max_depth": 1,
+    "model_call_count": 2,
+    "output_tokens": 0,
+    "parent_edges": [
+      {
+        "child_index": 1,
+        "parent_index": 0
+      },
+      {
+        "child_index": 2,
+        "parent_index": 0
+      },
+      {
+        "child_index": 3,
+        "parent_index": 0
+      },
+      {
+        "child_index": 4,
+        "parent_index": 0
+      },
+      {
+        "child_index": 5,
+        "parent_index": 0
+      },
+      {
+        "child_index": 6,
+        "parent_index": 0
+      }
+    ],
+    "root_status": "UNSET",
+    "sequence": [
+      "invoke_agent deterministic-agent",
+      "chat scripted-model",
+      "execute_tool local_lookup",
+      "execute_tool local_lookup",
+      "execute_tool local_lookup",
+      "execute_tool calculator",
+      "chat scripted-model"
+    ],
+    "span_count": 7,
+    "tool_call_count": 4,
+    "trace_id": "4306a6b14f857d6994f57f18e69c1470"
+  }
+]

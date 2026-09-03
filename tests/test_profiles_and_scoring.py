@@ -5,7 +5,7 @@ from agent_observability_lab.projections import EvidenceProfile, project_file
 from agent_observability_lab.oracle import build_baseline_oracle, build_oracle
 from agent_observability_lab.scoring import score_report
 from agent_observability_lab.runtime import Condition, DeterministicAgent
-from agent_observability_lab.tasks import InvoiceTask
+from agent_observability_lab.tasks import ComparisonTask, InvoiceTask
 from agent_observability_lab.telemetry import TelemetrySession
 
 
@@ -119,3 +119,19 @@ def test_retry_oracle_captures_terminal_failure(tmp_path):
     assert oracle["expected_findings"] == ["tool_failure", "retry_loop"]
     assert oracle["expected_attempt_numbers"] == [1, 2, 3]
     assert oracle["expected_root_status"] == "ERROR"
+
+
+def test_redundant_comparison_oracle_captures_duplicate_tool_use(tmp_path):
+    output = tmp_path / "redundant.jsonl"
+    session = TelemetrySession(output)
+    try:
+        DeterministicAgent(session.tracer).run(
+            ComparisonTask(), Condition.REDUNDANT_TOOL_USE, "opaque-run"
+        )
+    finally:
+        session.shutdown()
+
+    oracle = build_oracle(output, "two-option-comparison-v1", "redundant_tool_use")
+    assert oracle["expected_findings"] == ["candidate_redundant_tool_use"]
+    assert oracle["expected_attempt_numbers"] == [1, 1, 1, 1]
+    assert oracle["expected_tool_call_count"] == 4
