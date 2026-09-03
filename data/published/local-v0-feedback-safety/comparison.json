@@ -1,0 +1,78 @@
+[
+  {
+    "answer": 64.64,
+    "case": "invoice-transient-disabled",
+    "feedback_action": null,
+    "findings": [
+      "tool_failure"
+    ],
+    "model_call_count": 3,
+    "outcome": "success",
+    "root_status": "UNSET",
+    "sequence": [
+      "invoke_agent deterministic-agent",
+      "chat scripted-model",
+      "execute_tool calculator",
+      "chat scripted-model",
+      "execute_tool calculator",
+      "chat scripted-model"
+    ],
+    "tool_call_count": 2
+  },
+  {
+    "answer": 64.64,
+    "case": "invoice-transient-enabled",
+    "feedback_action": null,
+    "findings": [
+      "tool_failure"
+    ],
+    "model_call_count": 3,
+    "outcome": "success",
+    "root_status": "UNSET",
+    "sequence": [
+      "invoke_agent deterministic-agent",
+      "chat scripted-model",
+      "execute_tool calculator",
+      "chat scripted-model",
+      "execute_tool calculator",
+      "chat scripted-model"
+    ],
+    "tool_call_count": 2
+  },
+  {
+    "answer": "option-a-v1",
+    "case": "comparison-disabled",
+    "feedback_action": null,
+    "findings": [],
+    "model_call_count": 2,
+    "outcome": "success",
+    "root_status": "UNSET",
+    "sequence": [
+      "invoke_agent deterministic-agent",
+      "chat scripted-model",
+      "execute_tool local_lookup",
+      "execute_tool local_lookup",
+      "execute_tool calculator",
+      "chat scripted-model"
+    ],
+    "tool_call_count": 3
+  },
+  {
+    "answer": "option-a-v1",
+    "case": "comparison-enabled",
+    "feedback_action": null,
+    "findings": [],
+    "model_call_count": 2,
+    "outcome": "success",
+    "root_status": "UNSET",
+    "sequence": [
+      "invoke_agent deterministic-agent",
+      "chat scripted-model",
+      "execute_tool local_lookup",
+      "execute_tool local_lookup",
+      "execute_tool calculator",
+      "chat scripted-model"
+    ],
+    "tool_call_count": 3
+  }
+]
