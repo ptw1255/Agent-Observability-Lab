@@ -329,7 +329,7 @@ Agent-Observability-Lab/
 │   ├── EXPERIMENT_LOG.md
 │   └── DECISIONS.md
 ├── Journal/
-│   ├── Journal.1.md
+│   ├── Journal.0.md
 │   └── Journal.N.md
 ├── src/agent_observability_lab/
 │   ├── runtime.py

@@ -38,7 +38,7 @@ lab-notes/
 ├── EXPERIMENT_LOG.md
 └── DECISIONS.md
 Journal/
-├── Journal.1.md
+├── Journal.0.md
 └── Journal.N.md
 ```
 
@@ -119,7 +119,7 @@ Backend ingestion should be checked by matching expected trace IDs and counts. T
 
 Use [lab-notes/EXPERIMENT_LOG.md](lab-notes/EXPERIMENT_LOG.md) for chronological observations and [lab-notes/DECISIONS.md](lab-notes/DECISIONS.md) for choices that affect the protocol or interpretation.
 
-Use the numbered files in [Journal/](Journal/) for human-readable implementation checkpoints. Each checkpoint must state what was done, why it was done, whether it produced a meaningful result, and what should happen next. Start with `Journal.1.md`; every later checkpoint increments the number by one and is never renamed or reused.
+Use the numbered files in [Journal/](Journal/) for human-readable implementation checkpoints. Each checkpoint must state what was done, why it was done, whether it produced a meaningful result, and what should happen next. Start with `Journal.0.md`; every later checkpoint increments the number by one and is never renamed or reused.
 
 An experiment-log entry should answer:
 
