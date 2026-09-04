@@ -1,10 +1,15 @@
 import json
+from pathlib import Path
 
+import agent_observability_lab.hosted as hosted
 from agent_observability_lab.runtime import Condition, DeterministicAgent
 from agent_observability_lab.feedback import DuplicateSuppressionFeedback, RetryBudgetFeedback
 from agent_observability_lab.hosted import (
+    _execute_tool_call,
+    _tool_schemas,
     configuration,
     observe_cost_envelope,
+    run_tool_probe,
     summarize_reports,
 )
 from agent_observability_lab.tasks import ComparisonTask, DocumentTask, InvoiceTask
@@ -184,3 +189,93 @@ def test_cost_envelope_is_separate_from_execution_path_findings():
     )
     assert observation["exceeded"] is True
     assert observation["exceeded_metrics"] == ["output_tokens"]
+
+
+def test_hosted_tools_are_read_only_and_use_versioned_fixture_inputs():
+    task = ComparisonTask()
+    schemas = _tool_schemas()
+
+    assert [schema["name"] for schema in schemas] == [
+        "lookup_option",
+        "calculate_lower_cost",
+    ]
+    tool_name, logical_id, option_a, data_source = _execute_tool_call(
+        task, "lookup_option", {"option_id": task.option_a_id}
+    )
+    assert tool_name == "local_lookup"
+    assert logical_id == "comparison-option-a-v1"
+    assert data_source == task.option_a_id
+
+    tool_name, logical_id, result, _ = _execute_tool_call(
+        task,
+        "calculate_lower_cost",
+        {"option_a_total": option_a["delivered_total"], "option_b_total": 145.0},
+    )
+    assert tool_name == "calculator"
+    assert logical_id == "comparison-lower-cost"
+    assert result["lower_option_id"] == task.option_a_id
+
+
+def test_hosted_tool_probe_records_model_to_tool_topology_without_network(
+    tmp_path, monkeypatch
+):
+    responses = iter(
+        [
+            {
+                "id": "resp-turn-1",
+                "usage": {"input_tokens": 10, "output_tokens": 20},
+                "output": [
+                    {
+                        "type": "function_call",
+                        "name": "lookup_option",
+                        "call_id": "call-a",
+                        "arguments": '{"option_id":"option-a-v1"}',
+                    },
+                    {
+                        "type": "function_call",
+                        "name": "lookup_option",
+                        "call_id": "call-b",
+                        "arguments": '{"option_id":"option-b-v1"}',
+                    },
+                ],
+            },
+            {
+                "id": "resp-turn-2",
+                "usage": {"input_tokens": 20, "output_tokens": 20},
+                "output": [
+                    {
+                        "type": "function_call",
+                        "name": "calculate_lower_cost",
+                        "call_id": "call-c",
+                        "arguments": '{"option_a_total":130,"option_b_total":140}',
+                    }
+                ],
+            },
+            {
+                "id": "resp-turn-3",
+                "usage": {"input_tokens": 30, "output_tokens": 8},
+                "output": [
+                    {
+                        "type": "message",
+                        "content": [{"type": "output_text", "text": "option-a-v1"}],
+                    }
+                ],
+            },
+        ]
+    )
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key-not-a-real-secret")
+    monkeypatch.setattr(hosted, "_tls_context", lambda: object())
+    monkeypatch.setattr(hosted, "_post_response", lambda *args: next(responses))
+
+    result = run_tool_probe(tmp_path / "hosted-tools", max_turns=6)
+
+    assert result["answer"] == "option-a-v1"
+    assert result["report"]["model_call_count"] == 3
+    assert result["report"]["tool_call_count"] == 3
+    assert result["report"]["findings"] == []
+    records = [json.loads(line) for line in Path(result["trace_path"]).read_text().splitlines()]
+    model_spans = [record for record in records if record["name"] == "chat hosted-model"]
+    tool_spans = [record for record in records if record["name"].startswith("execute_tool")]
+    assert {span["parent_span_id"] for span in tool_spans}.issubset(
+        {span["span_id"] for span in model_spans}
+    )

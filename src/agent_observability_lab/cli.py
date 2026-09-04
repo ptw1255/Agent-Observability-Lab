@@ -9,7 +9,7 @@ from pathlib import Path
 
 from .analyzer import analyze
 from .feedback import DuplicateSuppressionFeedback, RetryBudgetFeedback
-from .hosted import configuration, run_baseline, run_cost_probe, run_probe
+from .hosted import configuration, run_baseline, run_cost_probe, run_probe, run_tool_probe
 from .projections import EvidenceProfile, project_file
 from .oracle import build_oracle
 from .matrix import run_matrix
@@ -85,8 +85,23 @@ def main() -> None:
     hosted_cost_parser.add_argument("--baseline", type=Path, required=True)
     hosted_cost_parser.add_argument("--model")
 
+    hosted_tools_parser = subparsers.add_parser(
+        "hosted-tools", help="run one bounded hosted tool-calling probe"
+    )
+    hosted_tools_parser.add_argument("--output", type=Path, required=True)
+    hosted_tools_parser.add_argument("--model")
+    hosted_tools_parser.add_argument("--max-turns", type=int, default=6)
+
     args = parser.parse_args()
-    if args.command == "hosted-cost-probe":
+    if args.command == "hosted-tools":
+        print(
+            json.dumps(
+                run_tool_probe(args.output, args.model, args.max_turns),
+                indent=2,
+                sort_keys=True,
+            )
+        )
+    elif args.command == "hosted-cost-probe":
         print(
             json.dumps(
                 run_cost_probe(args.output, args.baseline, args.model),
