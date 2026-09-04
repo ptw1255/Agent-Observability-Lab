@@ -24,6 +24,16 @@
 - **Reason:** The control protects internal validity while the integration lane tests realism and portability.
 - **Consequence:** Hosted results are reported separately and never pooled with deterministic results.
 
+## DR-005 — Outcome-aware feedback is post-run and proportionate
+
+- **Date:** 2026-09-03
+- **Decision:** Use tool-failure evidence together with a minimal root-level outcome class for post-run feedback decisions. A valid outcome after a tool failure produces `observe_only`; invalid or unavailable outcome produces `intervene_on_next_attempt`; absent validation produces `insufficient_evidence`.
+- **Context:** A real hosted calculator failure had no retry but still produced a validated correct answer. A tool-failure-only policy would have requested needless recovery.
+- **Evidence:** `data/published/local-v0-hosted-tool-probe-attempt-04-validated-failure/analysis.json` and `feedback-decision.json`.
+- **Alternatives:** Intervene on every tool failure; store full model responses to decide outcome; make no feedback decision.
+- **Reason:** The selected policy preserves dependency reliability evidence while avoiding an unsupported intervention after a validated task.
+- **Consequences:** The policy needs a trustworthy task-outcome source and currently acts after completion. It does not claim to evaluate private reasoning or replace semantic evaluation.
+
 ## New decision template
 
 ### DR-XXX — Title
