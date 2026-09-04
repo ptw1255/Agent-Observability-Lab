@@ -2,7 +2,7 @@
 
 ## What we did
 
-We added `aol hosted-cost-probe`. It makes one higher-effort hosted request, captures the trace, and compares output tokens and duration with the saved five-run baseline using a 1.25× envelope. The result is written as `hosted_cost_envelope`, separate from analyzer findings.
+We added `aol hosted-cost-probe` and ran it once. It made one higher-effort hosted request, captured the trace, and compared output tokens and duration with the saved five-run baseline using a 1.25× envelope. The result is written as `hosted_cost_envelope`, separate from analyzer findings.
 
 The cost-stress request asks for five taxed invoice totals and a JSON result with `high` reasoning effort. It is intentionally one model call, so any envelope exceedance remains a cost observation instead of an execution-path diagnosis.
 
@@ -16,17 +16,23 @@ The hosted baseline shows that a one-call model response naturally uses more tha
 
 ## Result at this checkpoint
 
-The rule and one-call probe are implemented but have not been run. Running it requires the same credentialed terminal session and incurs one API call.
+The cost-stress probe exceeded both baseline limits. It used 2,988 output tokens against a 630-token envelope and took 30.0 seconds against a 9.2-second envelope. The trace recorded 2,880 reasoning tokens.
+
+Its execution shape stayed simple: one root span, one model span, depth 1, no tool calls, no errors, and no execution-path findings. This validates the separation between a cost anomaly and an excessive execution path. The observed cost is unusual for this narrow hosted baseline; the trace does not show an abnormal topology or prove that the model’s reasoning was wasteful.
 
 ## Next step
 
-Run the one-call probe, inspect the cost observation, and report whether it exceeds the baseline envelope without calling it an inefficient path.
+Design a hosted tool-calling experiment. It should let a real model choose or repeat read-only local tools so the project can compare hosted cost observations with observable execution topology.
 
 ## Work snapshot
 
 ```text
 normal hosted probe -> 1 model call -> 360–504 output tokens
-higher-effort probe -> 1 model call -> compare cost with baseline
+cost-stress probe   -> 1 model call -> 2,988 output tokens
+cost observation    -> output and duration exceed envelope
+path finding        -> none; topology is unchanged
 ```
 
-The notable distinction is that both traces can have the same topology. The experiment asks whether cost differs enough to warrant attention, not whether the model followed a bad path.
+The notable distinction is that both traces have the same topology. The experiment shows cost differs enough to warrant attention; it does not show that the model followed a bad path.
+
+Artifacts: [local-v0-hosted-cost-probe](../data/published/local-v0-hosted-cost-probe/).

@@ -1,0 +1,14 @@
+{
+  "baseline_run_count": 5,
+  "duration_ms_limit": 9236.495,
+  "exceeded": true,
+  "exceeded_metrics": [
+    "output_tokens",
+    "duration_ms"
+  ],
+  "multiplier": 1.25,
+  "observed_duration_ms": 29973.601,
+  "observed_output_tokens": 2988,
+  "output_token_limit": 630.0,
+  "type": "hosted_cost_envelope"
+}
