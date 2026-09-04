@@ -1,6 +1,6 @@
 # Journal.07 — Retry-loop profile comparison
 
-## What we did
+## What changed
 
 We ran one invoice case where the calculator failed three times and the runtime exhausted its retry budget.
 
@@ -21,7 +21,7 @@ We extended the oracle builder for the retry graph and recorded the failed root 
 
 We projected the raw trace into P0, P1, and P2, ran the analyzer on each projection, scored the reports, and published the artifacts under `data/published/local-v0-retry-profile-comparison/`.
 
-## Concept to know
+## Key concepts
 
 A retry loop is a sequence of related failures. One error proves that an operation failed. Repeated errors plus a terminal budget outcome show that the runtime continued attempting the same work.
 
@@ -29,13 +29,13 @@ P0 can see failed statuses, repeated tool spans, and the failed root status. P1 
 
 The current model calls remain scripted local Python operations. Token counts are fixed test values, and local delays provide duration. The retry failures are controlled exceptions. This comparison measures telemetry and analyzer behavior; the hosted-model lane will test real model-selected execution later.
 
-## Why we did it
+## Why this checkpoint matters
 
 The transient comparison tested one failure followed by recovery. A retry loop tests repeated failure with no successful recovery.
 
 That distinction matters for runtime feedback. A post-run report can identify a loop. A live detector could stop the next retry only if the loop is recognizable before the budget is consumed.
 
-## Result at this checkpoint
+## Result and significance
 
 All profiles reconstructed the eight-span sequence exactly. Each profile achieved topology-edge F1 of `1.0`, matched the failed root status, and detected both expected findings with precision and recall of `1.0`.
 
@@ -52,3 +52,11 @@ Run the redundant-tool-use comparison on the two-option task. Test whether P0, P
 ## Artifacts
 
 - [Published comparison directory](../data/published/local-v0-retry-profile-comparison/)
+
+## Significance
+
+The trace exposes both the repeated calculator failures and the terminal budget outcome. P0 and P1 detect the loop from repeated failed structure; P2 adds exact attempt identity `[1, 2, 3]`. The result also defines the timing question for feedback: a post-run detector can describe the exhausted loop, while an in-run controller must recognize the pattern before the next paid attempt.
+
+## Market thesis
+
+Retry storms are a direct bridge between agent observability and operational cost control. The target buyer is an AI platform or reliability lead responsible for failure rate, latency, and provider spend. A system that attributes repeated attempts to one logical operation can support alerts today and bounded retry controls after the signal is proven safe.

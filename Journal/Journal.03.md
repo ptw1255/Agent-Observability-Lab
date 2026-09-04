@@ -1,6 +1,6 @@
 # Journal.03 — Two-option comparison task
 
-## What we did
+## What changed
 
 We added `ComparisonTask` with two local option fixtures:
 
@@ -19,7 +19,7 @@ We added tests for task selection, operation order, data-source identity, distin
 
 Implementation commit: `8e4ecfa`.
 
-## Concept to know
+## Key concepts
 
 Repeated calls do not automatically mean redundant work. A healthy comparison requires two lookup calls. The analyzer needs operation identity and argument evidence before it can flag a repeated call as a candidate duplicate.
 
@@ -32,13 +32,13 @@ redundant: lookup A + lookup B + lookup B
 
 The topology and fingerprints provide the observable difference. The word `candidate` remains important because telemetry alone cannot prove that a repeated successful call had zero semantic value in every real agent.
 
-## Why we did it
+## Why this checkpoint matters
 
 The first two tasks contain one main tool call. They cannot test whether the analyzer understands a required multi-tool path.
 
 This task creates a legitimate reason for multiple tool calls. That establishes the control case needed for redundancy detection and moves the workload closer to a real agent workflow.
 
-## Result at this checkpoint
+## Result and significance
 
 Fifteen tests passed across the three tasks.
 
@@ -53,3 +53,11 @@ This completes the three-task deterministic workload. Reconstruction scores have
 ## Next step
 
 Define the telemetry schema, sealed oracle schema, P0/P1/P2 projections, and scoring contract.
+
+## Significance
+
+This checkpoint creates the negative control required for duplicate detection. Two lookup spans are healthy because they address different options; the third lookup is suspicious because it repeats option B with the same fingerprint. The distinction prevents a detector from equating tool-call volume with waste and establishes why argument identity must accompany call counts.
+
+## Market thesis
+
+Tool-heavy agents create a specific observability segment around execution efficiency. Buyers will reject detectors that flag every multi-tool workflow as waste because valid agents often need several data sources. A product that distinguishes necessary fan-out from repeated equivalent work can serve workflow-automation and customer-support teams that pay for both model calls and external tools.

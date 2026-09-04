@@ -1,6 +1,6 @@
 # Journal.04 — Telemetry profiles and scoring contract
 
-## What we did
+## What changed
 
 We defined three views of one raw trace:
 
@@ -22,7 +22,7 @@ The CLI can create a projection with `project` and score analyzer output with `s
 
 Implementation commit: `07bb13f`.
 
-## Concept to know
+## Key concepts
 
 P0, P1, and P2 are an ablation. The execution stays fixed while the evidence available to the analyzer changes.
 
@@ -30,13 +30,13 @@ If P0 reconstructs topology and P1 restores token accounting, the result identif
 
 The oracle stores the expected graph and findings separately. The analyzer can see a projection. The scoring step can see both the analyzer report and oracle. This preserves the blind inference test.
 
-## Why we did it
+## Why this checkpoint matters
 
 The project needs to answer “how much telemetry is enough?” A single rich trace cannot answer that question. The profiles let us remove classes of fields without changing the underlying agent execution.
 
 The scoring contract also turns qualitative trace inspection into repeatable measurements. A sequence match, parent-edge F1, and finding precision/recall can be compared across tasks and profiles.
 
-## Result at this checkpoint
+## Result and significance
 
 Eighteen tests passed.
 
@@ -47,3 +47,11 @@ The full oracle-generation and 75-run scoring workflow remains pending. No broad
 ## Next step
 
 Generate one baseline invoice oracle, run the three projections, and record the first measured profile comparison.
+
+## Significance
+
+The ablation makes telemetry design measurable. P0 tests what generic tracing contributes, P1 tests standard GenAI attributes, and P2 tests four project-specific correlation fields against the same execution. This structure lets an engineering team justify each required field through a change in reconstruction, resource accounting, or finding accuracy.
+
+## Market thesis
+
+Observability vendors and enterprise platform teams need evidence for schema decisions because every captured attribute adds storage, integration, and privacy cost. A scored ablation can show which GenAI fields are table stakes and which enriched fields produce a diagnostic return. That evidence is useful to product managers defining defaults and to architects approving telemetry contracts.

@@ -1,6 +1,6 @@
 # Journal.00 — Project setup
 
-## What we did
+## What changed
 
 Created the public repository `ptw1255/Agent-Observability-Lab` and defined the first research plan.
 
@@ -19,7 +19,7 @@ The repository now contains:
 
 The initial experiment is bounded to three deterministic tasks, five execution conditions, five repetitions, and three evidence profiles. Optional hosted-model and Docker/OTLP integrations are planned after the deterministic control works.
 
-## Concept to know
+## Key concepts
 
 The project has two separate tracks:
 
@@ -36,7 +36,7 @@ frozen protocol → raw telemetry + sealed oracle → projections → analyzer �
 
 The oracle contains the known condition and expected behavior. The analyzer receives telemetry projections without the oracle. That separation makes the result auditable.
 
-## Why we did it
+## Why this checkpoint matters
 
 The repository needed a fixed research boundary before implementation. Without that boundary, the project could drift into a trace viewer, a provider comparison, or a collection of ad hoc agent demos.
 
@@ -44,7 +44,7 @@ The local-first scope keeps the first result reproducible on a MacBook Pro. The 
 
 The journal creates a running record of decisions, evidence, and next actions. Each later checkpoint should let a new reader understand how the project reached its current state.
 
-## Result at this checkpoint
+## Result and significance
 
 The project has a public home, a defined research question, a bounded v0 protocol, and a data-management policy.
 
@@ -53,3 +53,11 @@ No agent experiment had been run when this checkpoint was created. `Journal.01` 
 ## Next step
 
 Build the first deterministic agent slice around the invoice task. Record the implementation and its evidence in `Journal.01`.
+
+## Significance
+
+This checkpoint fixed the unit of proof before code existed: a trace-derived claim must be scored against a separate oracle. That decision prevents later demonstrations from treating visible telemetry as its own validation source. It also creates a reusable evaluation method that can compare instrumentation profiles, model providers, and agent runtimes without changing the research question.
+
+## Market thesis
+
+The agent-observability market will value a reproducible proof standard because vendors currently compete on how much telemetry they collect and display. Buyers still need evidence that a given field changes diagnosis accuracy or incident response. A benchmark that identifies the minimum sufficient telemetry can influence platform requirements, procurement tests, and integration standards.

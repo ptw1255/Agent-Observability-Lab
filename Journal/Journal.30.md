@@ -1,6 +1,6 @@
 # Journal.30 — Hosted lookup outage reached the safety cap
 
-## What we did
+## What changed
 
 Ran the real hosted lookup-outage extension with a six-turn cap. The model repeatedly requested both unavailable option lookups on every turn. The runtime completed all six allowed hosted model calls, recorded twelve failed lookup spans, and then stopped the run at the configured safety boundary rather than allowing an unbounded retry cycle.
 
@@ -8,19 +8,19 @@ Each option lookup has a stable logical-operation ID, normalized argument finger
 
 The original cap implementation raised a terminal Python exception after preserving the trace. We converted that condition into a normal terminal evidence state for future runs: root status `ERROR`, task outcome `failed`, answer validation `unavailable`, and a `terminated_by_turn_cap` result flag. The observed trace was analyzed directly and already contains the essential evidence: root error status, failed task outcome, six model calls, and twelve failed lookups.
 
-## Concept to know
+## Key concepts
 
 A safety cap is a bounded control action. It does not repair the unavailable dependency or decide the correct answer. It prevents a known-bad execution pattern from consuming further model calls once a fixed resource limit has been reached.
 
 The telemetry makes the reason for that stop inspectable. It shows repeated failures of the same logical operations, the six-turn expansion, token growth, and terminal root status. This is qualitatively different from a timeout with no context: a reviewer can see which dependency was retried, how often, and where the cost accumulated.
 
-## Why we did it
+## Why this checkpoint matters
 
 The prior hosted failure showed a case where a tool error did not warrant recovery because the task outcome was valid. This run exercises the opposite branch with real model behavior. The model lacked both data sources, kept retrying them, and never reached a validated outcome before the cap.
 
 This is the strongest real-hosted feedback evidence in the study. The same telemetry contract that supported `observe_only` after a valid outcome now supports `intervene_on_next_attempt` after a terminated retry path.
 
-## Result at this checkpoint
+## Result and significance
 
 The real outage run produced:
 
@@ -58,3 +58,11 @@ bounded action
 ```
 
 The notable result is proportionality. The project now has real hosted evidence for both restraint and intervention, using the same small boundary-level telemetry contract.
+
+## Significance
+
+The six-turn cap stopped a live path containing six attempts for each unavailable lookup, 12 failed tools, 4,268 input tokens, 873 output tokens, and 17.56 seconds of runtime. Stable logical-operation IDs and fingerprints prove that the model repeated the same two failed dependencies rather than encountering 12 unrelated errors. The analyzer and outcome policy agree on the response: the path is a retry loop with an unavailable outcome, so the next attempt should use backoff, an alternate source, or human review.
+
+## Market thesis
+
+This is the clearest commercial result for AI platform and reliability buyers because it connects trace evidence to bounded cost control. A production product could detect repeated logical failures before a configured turn budget is exhausted and recommend a safer next action. Buyers will require the same proof across several tasks and models before authorizing autonomous intervention.

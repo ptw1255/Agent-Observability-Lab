@@ -1,6 +1,6 @@
 # Journal.27 — Outcome-aware decision table
 
-## What we did
+## What changed
 
 Completed the feedback decision table with four local, explicitly synthetic policy cases. Each case is a minimal analyzer-report shape, not a generated model trace and not a claim about hosted-model behavior. The published artifact labels itself `synthetic: true` so it cannot be confused with the observed hosted runs.
 
@@ -13,13 +13,13 @@ The table confirms these actions:
 
 The real hosted run from Journal.25 occupies the second row. It is observed evidence, not a synthetic example: a failed calculator and a validated answer produced `observe_only`. The unavailable-outcome row tests the contrasting policy behavior locally without implying that a hosted model produced it.
 
-## Concept to know
+## Key concepts
 
 A decision table is a policy contract. It makes the relationship between evidence and action reviewable before an automated system acts. That is especially important for agent runtimes, where an error log can be tempting but insufficient grounds for retrying, stopping, or escalating work.
 
-The synthetic rows are valuable precisely because they are not evidence of model behavior. They test determinism of the policy: given the same analyzer report, the system recommends the same action. The observed traces test a different question: whether the runtime actually emits the evidence the policy needs.
+The synthetic rows test policy determinism: given the same analyzer report, the system recommends the same action. They provide no evidence about model behavior. The observed traces answer the separate question of whether the runtime emits the evidence the policy needs.
 
-## Why we did it
+## Why this checkpoint matters
 
 The project has now demonstrated both halves of a feedback loop:
 
@@ -28,7 +28,7 @@ The project has now demonstrated both halves of a feedback loop:
 
 Completing the decision table prevents the project from overclaiming. We have observed the valid-outcome branch in a real hosted run. We have not observed the unavailable or invalid branch from a real hosted model, so those remain policy-tested examples rather than experimental findings.
 
-## Result at this checkpoint
+## Result and significance
 
 The feedback policy is locally complete for its stated scope. Its behavior is deterministic, documented, and covered by 40 tests. The real hosted trace validates the most important restraint case: a tool failure does not automatically trigger recovery when the task outcome is valid.
 
@@ -50,3 +50,11 @@ synthetic policy coverage
 ```
 
 The notable boundary is clear: the real run proves that the telemetry and outcome signal can drive a restrained decision. The synthetic rows prove only that the decision logic is defined for the remaining cases.
+
+## Significance
+
+The decision table makes policy behavior reviewable before automation: the same input always produces the same recommendation across 40 tests. It also labels synthetic rows so they cannot be cited as observed model behavior. This distinction preserves the evidence chain and identifies the one missing live branch—failed dependency plus unavailable outcome.
+
+## Market thesis
+
+Enterprise governance teams will value a versioned decision table because it exposes when an agent system observes, retries, escalates, or declines to act. The table can become an approval artifact for runtime controls and a regression test after policy changes. Its commercial value comes from auditability and predictable action, not from the number of automated decisions.

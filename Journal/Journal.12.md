@@ -1,6 +1,6 @@
 # Journal.12 — Feedback safety against recovery
 
-## What we did
+## What changed
 
 We ran two safety controls with feedback disabled and enabled:
 
@@ -9,15 +9,15 @@ We ran two safety controls with feedback disabled and enabled:
 
 The feedback policy was unchanged. The purpose was to test whether its retry-loop rule would accidentally interfere with successful recovery or legitimate multi-step work.
 
-## Concept to know
+## Key concepts
 
 A feedback policy must be evaluated for both benefit and harm. Reducing calls is not automatically an improvement if the policy converts a recoverable task into a failure or blocks work that was necessary.
 
-## Why we did it
+## Why this checkpoint matters
 
 Journal.11 showed a cost reduction on a deliberately terminal retry loop. This checkpoint tested the safety boundary: a transient failure should recover, and two different lookups should remain two different lookups.
 
-## Result at this checkpoint
+## Result and significance
 
 Feedback did not intervene in either control. Both transient runs returned `64.64`, used 2 tool calls and 3 model calls, and ended with successful root status. Both comparison runs returned `option-a-v1`, used 3 tool calls and 2 model calls, and preserved the sequence of lookup A, lookup B, calculator, and finalization.
 
@@ -39,3 +39,11 @@ comparison + feedback          -> retains both required lookups
 The notable result is that the traces are identical within each disabled/enabled pair. Feedback action is absent, outcomes are successful, and the required tool topology is unchanged. The next policy must prove the converse: it changes a redundant path while preserving the legitimate control.
 
 Artifacts: [local-v0-feedback-safety](../data/published/local-v0-feedback-safety/).
+
+## Significance
+
+The unchanged transient and comparison controls establish two safety properties for the retry policy: one failure can still recover, and two distinct lookups remain intact. These controls matter as much as the saved retry because an intervention that lowers call counts by breaking successful tasks has negative value. The current evidence remains limited to one explicit retry branch and one deterministic multi-tool task.
+
+## Market thesis
+
+Risk-sensitive buyers will judge agent controls by false interventions, not only by waste removed. A reliability product must report successful recoveries and untouched valid paths alongside savings. The first buyer is likely an AI platform lead who can compare operational cost reduction with task-success regression risk.

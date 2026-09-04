@@ -1,30 +1,30 @@
 # Journal.28 — Research checkpoint and answer
 
-## What we did
+## What changed
 
 Reviewed the deterministic control results, the hosted baseline tool trace, two hosted calculator-failure traces, their path-oracle scores, the minimal outcome signal, and the outcome-aware feedback decision. This checkpoint separates direct observations from the stronger claims that would require more tasks, models, or real intervention runs.
 
-The hosted evidence is deliberately small but concrete. A successful run produced the expected three-turn, three-tool execution graph with exact baseline-oracle agreement. Two runs then forced the first calculator invocation to fail. In both, telemetry identified the failed calculator boundary and showed that the model did not retry. In the later run, the root-level validator recorded a valid task outcome despite the missing retry. The post-run policy consequently returned `observe_only` rather than requesting unnecessary recovery.
+The hosted evidence is deliberately small and concrete. A successful run produced the expected three-turn, three-tool execution graph with exact baseline-oracle agreement. Two runs then forced the first calculator invocation to fail. In both, telemetry identified the failed calculator boundary and showed that the model did not retry. In the later run, the root-level validator recorded a valid task outcome despite the missing retry. The post-run policy returned `observe_only`, avoiding an unnecessary recovery request.
 
-## Concept to know
+## Key concepts
 
 The project has tested **execution semantics**, not hidden reasoning. Execution semantics are facts that a runtime can legitimately observe at reusable boundaries: model invocations, tool requests, parentage, status, attempts, argument equivalence, tokens, latency, and a separately supplied outcome class. They are enough to reconstruct what the agent did in this experiment.
 
 They do not reveal why the model made its choices, whether an unvalidated response was semantically sensible, or whether a tool call was philosophically necessary. Those claims require additional context or a separate evaluator. Keeping that boundary explicit is what makes the evidence defensible.
 
-## Why we did it
+## Why this checkpoint matters
 
 The initial question was not whether traces are useful in the abstract. It was whether OpenTelemetry can reconstruct agent behavior well enough to identify inefficient or failed paths without manually instrumenting every business-logic step. The second question was whether observability can become a feedback signal.
 
 A project checkpoint prevents the experiment from drifting into feature accumulation. It asks whether the collected evidence answers those questions at the intended scope and what one more experiment would genuinely add.
 
-## Result at this checkpoint
+## Result and significance
 
 ### Answer to the execution-reconstruction question
 
 **Qualified yes, for externally observable execution behavior.** The deterministic lane and the real hosted tool runs reconstruct the operation sequence, causal topology, tool failure, retry absence, attempt identity, latency, token use, and a provider-versus-tool cost split. The hosted failure trace made a missing recovery branch visible without adding spans inside option lookup or calculator logic.
 
-The qualification is essential. OpenTelemetry did not reconstruct private reasoning or model intent. It also did not establish answer correctness by itself; the valid/invalid/unavailable class came from a small external task validator at the agent boundary. The result should therefore be read as: boundary telemetry is strong evidence about *how a run executed*, but not a substitute for semantic evaluation.
+OpenTelemetry reconstructed execution events and relationships. Private reasoning and model intent remained outside the trace. The valid/invalid/unavailable class came from a separate task validator, which establishes that semantic evaluation remains an independent evidence source.
 
 ### Answer to the feedback-signal question
 
@@ -66,3 +66,11 @@ What feedback did in the real failure run
 ```
 
 The notable result is not that telemetry replaced reasoning evaluation. It did not. The result is that telemetry supplied reliable execution evidence, and a very small outcome signal turned that evidence into a safe, explainable feedback decision.
+
+## Significance
+
+The checkpoint answers both research questions at the tested scope. Boundary spans reconstruct the hosted execution graph and failure path; a separate outcome class supports a proportionate post-run recommendation. The result also marks the open work explicitly: multiple models, tasks, frameworks, incomplete telemetry, and a real intervention remain outside the evidence.
+
+## Market thesis
+
+The agent-observability market will mature from trace display toward evidence-backed decisions. This study suggests that execution telemetry and outcome evaluation are separate inputs that must converge before automation. A focused diagnostic layer can serve existing observability platforms by providing that decision logic without owning trace storage.

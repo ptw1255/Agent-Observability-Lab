@@ -1,6 +1,6 @@
 # Journal.21 — Hosted baseline-path oracle
 
-## What we did
+## What changed
 
 Turned the completed hosted tool trace into a compact oracle: an explicit statement of what the intended, efficient path looks like for this one task. The oracle expects one hosted agent root, three model turns, two option lookups, one calculation, three first attempts, depth two, a clean root status, and no findings. It also specifies the six parent-child edges that connect the model turns and tools.
 
@@ -8,19 +8,19 @@ The oracle deliberately does not assert exact token counts or latency. Those are
 
 We then scored the published successful trace against this oracle. It matched exactly: the seven-span sequence was exact, topology edge F1 was 1.0, model/tool/depth counts matched, all attempt numbers were correct, the root was clean, and the analyzer correctly reported no findings.
 
-## Concept to know
+## Key concepts
 
 An oracle is not telemetry. It is an independent expectation created from the known task contract. Telemetry says, “these spans occurred.” The oracle says, “for this controlled baseline, these are the spans and relationships that should occur.” Comparing them lets us distinguish a valid reconstruction from an analysis result that merely looks plausible.
 
-The scope matters. This is a baseline-path oracle, not a claim that every correct hosted agent must use exactly three turns. A different valid prompt or model behavior could legitimately have a different path. For this experiment, holding the task and adapter fixed gives later deviations a meaningful reference point.
+The oracle applies to this fixed prompt, task, and adapter. A different valid prompt or model behavior could use another path. Holding these inputs fixed gives later deviations a defined comparison point.
 
-## Why we did it
+## Why this checkpoint matters
 
 The upcoming failure-mode experiment needs a comparison point. Without an oracle, a failed tool call is just an event. With the baseline oracle, we can ask concrete questions: Did a new model turn appear after failure? Did the same logical operation receive a second attempt? Did the trace retain the failure and recovery boundaries? Did the analyzer identify the deviation without reading an injected condition label?
 
 This is the transition from observing a trace to testing whether telemetry is usable as machine-readable evidence.
 
-## Result at this checkpoint
+## Result and significance
 
 The hosted baseline is now scored, not merely described. The score confirms that the telemetry reconstructs this known successful path with complete structural agreement. That is a strong result for path reconstruction at reusable runtime boundaries.
 
@@ -41,3 +41,11 @@ attempts [1, 1, 1], no errors             attempts [1, 1, 1], no errors  exact
 ```
 
 The notable point is what the score excludes: it makes no claim about private reasoning quality, answer semantics beyond the controlled task, or a universal token budget. It tests only whether the trace exposes the execution structure we need for the next experiment.
+
+## Significance
+
+The oracle scores stable semantics—seven spans, six edges, three model turns, three first-attempt tools, depth two, and a clean root—while allowing token and latency variation. Exact sequence and 1.0 edge F1 establish that the analyzer can reproduce the known hosted path. Later failures can now be measured as missing, added, or changed execution rather than described informally.
+
+## Market thesis
+
+Regulated and high-consequence users will value an explicit expected-path contract because it turns a trace into auditable evidence. The contract can show that a required operation was skipped or retried without claiming access to model intent. An observability offering can package this as workflow conformance for tasks whose valid execution graph is known.
