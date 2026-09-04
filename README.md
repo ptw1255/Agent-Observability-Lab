@@ -18,6 +18,10 @@ In another run, both required lookups were unavailable. The agent called them ag
 
 OpenTelemetry made these cases distinguishable from runtime evidence. That turns tracing into evidence for a control decision instead of a record that someone reviews only after cost or failure has accumulated.
 
+### Theory/Hypothesis for Scaled Environments
+
+What do these results mean when agents are expected to handle production workflows, especially at hyperscale? A single unnecessary retry may be cheap, but the same behavior repeated across thousands or millions of runs becomes material cost, added latency, dependency pressure, and avoidable failure. This study supports the hypothesis that shared OpenTelemetry signals can help production runtimes distinguish a useful recovery attempt from a path that is no longer making progress, then stop, reroute, or escalate that run before more resources are wasted. If that result holds across larger systems and more varied workflows, observability can become part of the agent's control loop—not just a record of what went wrong afterward—and teams can apply that control without writing custom instrumentation for every workflow step.
+
 ### How it works
 
 The runtime combines two inputs:
