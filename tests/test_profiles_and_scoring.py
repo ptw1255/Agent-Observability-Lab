@@ -6,6 +6,7 @@ from agent_observability_lab.projections import EvidenceProfile, project_file
 from agent_observability_lab.oracle import (
     build_baseline_oracle,
     build_hosted_tool_baseline_oracle,
+    build_hosted_tool_recovery_oracle,
     build_oracle,
 )
 from agent_observability_lab.scoring import score_report
@@ -175,3 +176,18 @@ def test_hosted_tool_oracle_scores_the_published_baseline_trace():
     assert all(score["resource_matches"].values())
     assert score["attempt_sequence_match"] is True
     assert score["runtime_lane_match"] is True
+
+
+def test_hosted_recovery_oracle_exposes_missing_retry_in_published_failure_trace():
+    root = Path(__file__).resolve().parents[1]
+    trace = root / "data/published/local-v0-hosted-tool-probe-attempt-03-failure/raw-trace.jsonl"
+    report = analyze(trace)[0]
+    oracle = build_hosted_tool_recovery_oracle(trace)
+    score = score_report(report, oracle)
+
+    assert score["sequence_exact"] is False
+    assert score["resource_matches"]["model_call_count"] is False
+    assert score["resource_matches"]["tool_call_count"] is False
+    assert score["attempt_sequence_match"] is False
+    assert score["findings"]["predicted"] == ["tool_failure"]
+    assert score["findings"]["expected"] == ["tool_failure"]
