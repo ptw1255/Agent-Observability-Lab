@@ -263,9 +263,15 @@ def test_hosted_tool_probe_records_model_to_tool_topology_without_network(
             },
         ]
     )
+    payloads = []
+
+    def fake_post_response(*args):
+        payloads.append(args[2])
+        return next(responses)
+
     monkeypatch.setenv("OPENAI_API_KEY", "test-key-not-a-real-secret")
     monkeypatch.setattr(hosted, "_tls_context", lambda: object())
-    monkeypatch.setattr(hosted, "_post_response", lambda *args: next(responses))
+    monkeypatch.setattr(hosted, "_post_response", fake_post_response)
 
     result = run_tool_probe(tmp_path / "hosted-tools", max_turns=6)
 
@@ -273,6 +279,10 @@ def test_hosted_tool_probe_records_model_to_tool_topology_without_network(
     assert result["report"]["model_call_count"] == 3
     assert result["report"]["tool_call_count"] == 3
     assert result["report"]["findings"] == []
+    assert "previous_response_id" not in payloads[1]
+    assert any(
+        item.get("type") == "function_call_output" for item in payloads[1]["input"]
+    )
     records = [json.loads(line) for line in Path(result["trace_path"]).read_text().splitlines()]
     model_spans = [record for record in records if record["name"] == "chat hosted-model"]
     tool_spans = [record for record in records if record["name"].startswith("execute_tool")]

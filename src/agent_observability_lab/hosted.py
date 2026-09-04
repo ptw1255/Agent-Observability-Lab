@@ -20,6 +20,10 @@ from .tasks import ComparisonTask
 from .telemetry import TelemetrySession
 
 
+class HostedAPIError(RuntimeError):
+    """An API error whose message preserves the server's safe diagnostic text."""
+
+
 def configuration() -> dict[str, object]:
     return {
         "api_key_configured": bool(os.environ.get("OPENAI_API_KEY")),
@@ -71,8 +75,16 @@ def _post_response(
         },
         method="POST",
     )
-    with urllib.request.urlopen(request, timeout=60, context=tls_context) as response:
-        return json.loads(response.read().decode())
+    try:
+        with urllib.request.urlopen(request, timeout=60, context=tls_context) as response:
+            return json.loads(response.read().decode())
+    except urllib.error.HTTPError as error:
+        raw_detail = error.read().decode("utf-8", errors="replace")
+        try:
+            detail = json.loads(raw_detail).get("error", {}).get("message", raw_detail)
+        except json.JSONDecodeError:
+            detail = raw_detail
+        raise HostedAPIError(f"OpenAI API request failed ({error.code}): {detail}") from error
 
 
 def _record_usage(span, body: dict[str, object], started: float) -> None:
@@ -236,7 +248,7 @@ def run_probe(
                         request, timeout=60, context=tls_context
                     ) as response:
                         body = json.loads(response.read().decode())
-                except urllib.error.HTTPError as error:
+                except (urllib.error.HTTPError, HostedAPIError) as error:
                     root.set_attribute("agent_observability_lab.task_outcome", "failed")
                     span.record_exception(error)
                     raise
@@ -402,15 +414,21 @@ def run_tool_probe(
     run_id = str(uuid.uuid4())
     trace_path = output_root / "raw-trace.jsonl"
     attempt_counts: dict[str, int] = {}
+    conversation_items: list[object] = [
+        {
+            "role": "user",
+            "content": (
+                "Determine which option has the lower delivered cost. Call lookup_option "
+                "for option-a-v1 and option-b-v1, then call calculate_lower_cost with "
+                "the resulting totals. After the tools return, answer only the option ID."
+            ),
+        }
+    ]
     payload_body: dict[str, object] = {
         "model": model_name,
         "store": False,
         "tools": _tool_schemas(),
-        "input": (
-            "Determine which option has the lower delivered cost. Call lookup_option "
-            "for option-a-v1 and option-b-v1, then call calculate_lower_cost with "
-            "the resulting totals. After the tools return, answer only the option ID."
-        ),
+        "input": conversation_items,
     }
     session = TelemetrySession(
         trace_path, otlp_endpoint=os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT")
@@ -447,7 +465,7 @@ def run_tool_probe(
                 ) as model_span:
                     try:
                         body = _post_response(endpoint, api_key, payload_body, tls_context)
-                    except urllib.error.HTTPError as error:
+                    except (urllib.error.HTTPError, HostedAPIError) as error:
                         root.set_attribute("agent_observability_lab.task_outcome", "failed")
                         model_span.record_exception(error)
                         model_span.set_status(Status(StatusCode.ERROR, str(error)))
@@ -517,12 +535,16 @@ def run_tool_probe(
                     break
                 if not final_response_id:
                     raise RuntimeError("hosted response did not include an ID")
+                # With store=False, carry all prior response items forward explicitly.
+                # This preserves function-call and reasoning context without relying on
+                # server-side response state.
+                conversation_items.extend(body.get("output", []))
+                conversation_items.extend(outputs)
                 payload_body = {
                     "model": model_name,
                     "store": False,
                     "tools": _tool_schemas(),
-                    "previous_response_id": final_response_id,
-                    "input": outputs,
+                    "input": conversation_items,
                 }
             else:
                 root.set_attribute("agent_observability_lab.task_outcome", "failed")
