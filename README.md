@@ -4,11 +4,33 @@
 
 ## TL;DR
 
-This study found that OpenTelemetry can reconstruct the **externally visible execution path** of an AI agent without logging private reasoning or tracing every line of business logic. At shared agent, model, and tool boundaries, telemetry recovered model calls, tool calls, retries, failures, parent-child topology, latency, token growth, and safety-cap termination.
+### What we found
 
-The key lesson is that a tool failure is not automatically a task failure. In one real hosted run, a calculator failed, the agent did not retry, and the final answer was still independently validated as correct. The right feedback action was to observe the dependency failure, not interrupt the task. In another run, two required lookups failed repeatedly; the agent retried them until its six-turn safety cap ended the run. That evidence supported intervention on the next attempt.
+You can understand how an AI agent ran without recording its hidden reasoning or adding telemetry inside every function. This project added OpenTelemetry at three shared boundaries: the agent run, each model call, and each tool call. Those spans showed which calls happened, which call caused the next one, where a tool failed, whether the agent retried it, how long the run took, how many tokens it used, and why a safety cap stopped it.
 
-The practical conclusion: use telemetry to determine whether execution is progressing, repeating, failing, or becoming expensive—not to infer hidden reasoning. Combine that execution evidence with an independent outcome signal, such as a validator or workflow assertion, before acting on it.
+### Why it matters
+
+The important discovery is that the same tool error can require two different actions.
+
+In one real hosted run, the calculator failed once. The agent did not retry it, but it still returned the correct answer from data it already had. An automatic retry would have added cost without improving the result. The right action was to record the calculator failure and let the completed task stand.
+
+In another run, both required lookups were unavailable. The agent called them again on every turn: six model calls, twelve failed tool calls, 4,268 input tokens, and no completed answer. The safety cap stopped the run. The right next action was to block another identical attempt until the dependency recovered or the runtime chose another path.
+
+OpenTelemetry made these cases distinguishable from runtime evidence. That turns tracing into evidence for a control decision instead of a record that someone reviews only after cost or failure has accumulated.
+
+### How it works
+
+The runtime combines two inputs:
+
+1. **Execution evidence:** calls, order, parentage, errors, retries, latency, and tokens from OpenTelemetry spans.
+2. **Outcome evidence:** one independent result such as `valid`, `invalid`, or `unavailable` from a task validator or workflow check.
+
+The resulting rule is simple:
+
+- A tool fails and the outcome is valid: record the failure and do not force recovery.
+- Failures repeat and no valid outcome exists: stop, back off, use another dependency, or send the run for review.
+
+Those decisions rely on observable runtime behavior and whether the task met its contract. Hidden chain-of-thought stays outside the project’s scope.
 
 ## What this project is
 
