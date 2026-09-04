@@ -18,22 +18,26 @@ The deterministic lane demonstrated path reconstruction and feedback with contro
 
 ## Result at this checkpoint
 
-The adapter is ready for one controlled run. Its local components are tested without credentials: the schemas expose only the two intended functions, option lookup reads only versioned fixtures, calculation produces a deterministic answer, and a simulated three-turn provider exchange verifies that tool spans are children of their requesting model turns. There is no hosted result yet, so we have not established that a real model will follow the intended sequence or that the resulting trace supports all planned inferences.
+The real hosted run completed successfully. It produced seven spans: one root agent span, three hosted-model spans, two local lookup spans, and one calculator span. The first model turn requested both lookups, the second requested the calculator, and the third produced the final answer. Every tool span has the model turn that requested it as its parent. All three tools succeeded on their first attempt; there were no error spans and no analyzer findings.
+
+This is meaningful evidence for a narrow version of the research question. Without manually tracing each line of option-lookup or arithmetic logic, the runtime-level telemetry reconstructs the externally visible execution path: which provider turns occurred, which tools the model selected, which fixtures they addressed, their order, their parentage, and whether they succeeded. It does not reveal whether the model's hidden reasoning was sound, nor does one successful path establish that retry or redundancy detectors work with a hosted model.
+
+The run took 10,092.240 ms. The three hosted model turns accounted for almost all elapsed time: roughly 4,167 ms, 4,442 ms, and 1,456 ms of provider latency. The local tools together took about 0.135 ms. Telemetry therefore makes the cost split visible: this path's time was provider-bound, not tool-bound. Total recorded usage was 1,587 input tokens and 653 output tokens, including 512 recorded reasoning tokens. Input tokens grew from 141 to 542 to 904 because the stateless `store: false` loop explicitly carries prior function-call context forward.
 
 ## Next step
 
-Run the command once in the terminal that has `OPENAI_API_KEY`, then inspect `analysis.json` and `raw-trace.jsonl`. Confirm the number and order of model/tool spans before attempting failure injection or feedback.
+Define a compact hosted-path oracle for this successful task, then compare future hosted traces against it. That gives the next failure-mode experiment a clear reference: the expected three model turns, two lookups, one calculation, first-attempt success, and depth of two.
 
 ## Work snapshot
 
 ```text
-root agent span
-  -> hosted model turn 1
-       -> local option lookup (option A)
-       -> local option lookup (option B)
-  -> hosted model turn 2
-       -> local calculator
-  -> hosted model turn 3 -> final answer
+invoke_agent hosted-tool-agent                     10,092.240 ms
+  -> chat hosted-model, turn 1                     4,167.422 ms provider latency
+       -> execute_tool local_lookup, option A      0.059 ms
+       -> execute_tool local_lookup, option B      0.029 ms
+  -> chat hosted-model, turn 2                     4,441.574 ms provider latency
+       -> execute_tool calculator                  0.047 ms
+  -> chat hosted-model, turn 3                     1,455.592 ms provider latency
 ```
 
-The precise order may vary: the model can request both lookups in one turn or one at a time. What matters is that every observed tool request has a model-turn parent, a tool name, a stable fingerprint, and an outcome. That is the evidence we will test next: can it reconstruct the externally visible path without recording private reasoning content?
+The notable pattern is not merely that tools appear in the trace. The trace preserves the causal boundary: turn 1 caused both lookups, turn 2 caused calculation, and turn 3 closed the task. That is enough to distinguish this efficient path from a future retry, duplicate lookup, or extra model-turn path without recording private reasoning content.
