@@ -408,3 +408,36 @@ def test_hosted_tool_probe_exposes_unvalidated_outcome_after_lookup_outage(
     assert "all_option_lookups_unavailable" not in Path(
         result["trace_path"]
     ).read_text()
+
+
+def test_hosted_tool_probe_turn_cap_becomes_a_terminal_evidence_state(
+    tmp_path, monkeypatch
+):
+    responses = iter(
+        [
+            {
+                "id": "resp-1",
+                "usage": {},
+                "output": [
+                    {
+                        "type": "function_call",
+                        "name": "lookup_option",
+                        "call_id": "call-a",
+                        "arguments": '{"option_id":"option-a-v1"}',
+                    }
+                ],
+            }
+        ]
+    )
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key-not-a-real-secret")
+    monkeypatch.setattr(hosted, "_tls_context", lambda: object())
+    monkeypatch.setattr(hosted, "_post_response", lambda *args: next(responses))
+
+    result = run_tool_probe(tmp_path / "hosted-cap", max_turns=1)
+
+    assert result["terminated_by_turn_cap"] is True
+    assert result["answer_validation"] == "unavailable"
+    assert result["report"]["root_status"] == "ERROR"
+    assert outcome_aware_tool_failure_decision(result["report"])["action"] == (
+        "intervene_on_next_attempt"
+    )

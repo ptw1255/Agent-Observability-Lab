@@ -467,6 +467,7 @@ def run_tool_probe(
     final_response_id: str | None = None
     final_answer: str | None = None
     answer_validation = "unavailable"
+    terminated_by_turn_cap = False
     try:
         with session.tracer.start_as_current_span(
             "invoke_agent hosted-tool-agent",
@@ -608,7 +609,11 @@ def run_tool_probe(
                 }
             else:
                 root.set_attribute("agent_observability_lab.task_outcome", "failed")
-                raise RuntimeError(f"hosted tool probe exceeded {max_turns} model turns")
+                root.set_attribute("agent_observability_lab.answer_validation", "unavailable")
+                root.set_status(
+                    Status(StatusCode.ERROR, f"hosted tool probe exceeded {max_turns} model turns")
+                )
+                terminated_by_turn_cap = True
     finally:
         session.shutdown()
 
@@ -626,6 +631,7 @@ def run_tool_probe(
         "max_turns": max_turns,
         "answer": final_answer,
         "answer_validation": answer_validation,
+        "terminated_by_turn_cap": terminated_by_turn_cap,
         "response_id": final_response_id,
         "trace_path": str(trace_path),
         "analysis_path": str(output_root / "analysis.json"),

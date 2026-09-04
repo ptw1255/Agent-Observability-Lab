@@ -47,12 +47,27 @@ def analyze(path: Path) -> list[dict[str, object]]:
                     }
                 )
 
-        if len(tool_spans) >= 3 and len(error_tools) >= 2:
+        failed_attempts_by_operation: dict[str, list[dict[str, object]]] = defaultdict(list)
+        for span in error_tools:
+            logical_operation_id = span["attributes"].get(
+                "agent_observability_lab.logical_operation_id"
+            )
+            if logical_operation_id:
+                failed_attempts_by_operation[str(logical_operation_id)].append(span)
+        retry_operation = next(
+            (
+                attempts
+                for attempts in failed_attempts_by_operation.values()
+                if len(attempts) >= 3
+            ),
+            None,
+        )
+        if retry_operation:
             findings.append(
                 {
                     "type": "retry_loop",
-                    "span_id": error_tools[-1]["span_id"],
-                    "evidence": "repeated tool failures consumed multiple attempts",
+                    "span_id": retry_operation[-1]["span_id"],
+                    "evidence": "one logical operation failed across three or more attempts",
                 }
             )
 

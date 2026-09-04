@@ -1,0 +1,10 @@
+{
+  "action": "intervene_on_next_attempt",
+  "evidence": {
+    "answer_validation": null,
+    "run_terminated": true,
+    "tool_failure": true
+  },
+  "rationale": "the runtime terminated before a validated task outcome",
+  "type": "outcome_aware_tool_failure_decision"
+}

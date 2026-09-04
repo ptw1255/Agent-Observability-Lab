@@ -26,6 +26,18 @@ def test_missing_validation_does_not_trigger_an_unsupported_intervention():
     assert decision["action"] == "insufficient_evidence"
 
 
+def test_terminated_run_is_intervened_on_without_answer_validation():
+    decision = outcome_aware_tool_failure_decision(
+        {
+            "findings": [{"type": "tool_failure"}, {"type": "retry_loop"}],
+            "task_outcome": "failed",
+            "root_status": "ERROR",
+        }
+    )
+
+    assert decision["action"] == "intervene_on_next_attempt"
+
+
 def test_decision_table_is_explicitly_synthetic_and_complete():
     table = outcome_aware_decision_table()
 
@@ -33,6 +45,7 @@ def test_decision_table_is_explicitly_synthetic_and_complete():
     assert [case["decision"]["action"] for case in table["cases"]] == [
         "no_action",
         "observe_only",
+        "intervene_on_next_attempt",
         "intervene_on_next_attempt",
         "insufficient_evidence",
     ]

@@ -1,0 +1,198 @@
+[
+  {
+    "answer_validation": null,
+    "attempt_numbers": [
+      1,
+      1,
+      2,
+      2,
+      3,
+      3,
+      4,
+      4,
+      5,
+      5,
+      6,
+      6
+    ],
+    "duration_ms": 17559.951,
+    "error_count": 12,
+    "findings": [
+      {
+        "evidence": "tool span ended with error status",
+        "span_id": "60b215299647246c",
+        "type": "tool_failure"
+      },
+      {
+        "evidence": "tool span ended with error status",
+        "span_id": "57140d3945234179",
+        "type": "tool_failure"
+      },
+      {
+        "evidence": "tool span ended with error status",
+        "span_id": "1a4276ebdccd6001",
+        "type": "tool_failure"
+      },
+      {
+        "evidence": "tool span ended with error status",
+        "span_id": "072c5511d7e20542",
+        "type": "tool_failure"
+      },
+      {
+        "evidence": "tool span ended with error status",
+        "span_id": "5a3fee496c0a342c",
+        "type": "tool_failure"
+      },
+      {
+        "evidence": "tool span ended with error status",
+        "span_id": "2e33a09f02275985",
+        "type": "tool_failure"
+      },
+      {
+        "evidence": "tool span ended with error status",
+        "span_id": "d6dc6421fb6717ed",
+        "type": "tool_failure"
+      },
+      {
+        "evidence": "tool span ended with error status",
+        "span_id": "fba66d125d4c3cc4",
+        "type": "tool_failure"
+      },
+      {
+        "evidence": "tool span ended with error status",
+        "span_id": "a18f55578f6a0079",
+        "type": "tool_failure"
+      },
+      {
+        "evidence": "tool span ended with error status",
+        "span_id": "d1756fee5e166c98",
+        "type": "tool_failure"
+      },
+      {
+        "evidence": "tool span ended with error status",
+        "span_id": "b9183b05c263e7d3",
+        "type": "tool_failure"
+      },
+      {
+        "evidence": "tool span ended with error status",
+        "span_id": "83c5c8b8f2fc9bd2",
+        "type": "tool_failure"
+      },
+      {
+        "evidence": "one logical operation failed across three or more attempts",
+        "span_id": "b9183b05c263e7d3",
+        "type": "retry_loop"
+      },
+      {
+        "evidence": "depth or model calls exceeded the local envelope",
+        "span_id": "83c5c8b8f2fc9bd2",
+        "type": "excessive_execution_path"
+      }
+    ],
+    "input_tokens": 4268,
+    "max_depth": 2,
+    "model_call_count": 6,
+    "output_tokens": 873,
+    "parent_edges": [
+      {
+        "child_index": 1,
+        "parent_index": 0
+      },
+      {
+        "child_index": 2,
+        "parent_index": 1
+      },
+      {
+        "child_index": 3,
+        "parent_index": 1
+      },
+      {
+        "child_index": 4,
+        "parent_index": 0
+      },
+      {
+        "child_index": 5,
+        "parent_index": 4
+      },
+      {
+        "child_index": 6,
+        "parent_index": 4
+      },
+      {
+        "child_index": 7,
+        "parent_index": 0
+      },
+      {
+        "child_index": 8,
+        "parent_index": 7
+      },
+      {
+        "child_index": 9,
+        "parent_index": 7
+      },
+      {
+        "child_index": 10,
+        "parent_index": 0
+      },
+      {
+        "child_index": 11,
+        "parent_index": 10
+      },
+      {
+        "child_index": 12,
+        "parent_index": 10
+      },
+      {
+        "child_index": 13,
+        "parent_index": 0
+      },
+      {
+        "child_index": 14,
+        "parent_index": 13
+      },
+      {
+        "child_index": 15,
+        "parent_index": 13
+      },
+      {
+        "child_index": 16,
+        "parent_index": 0
+      },
+      {
+        "child_index": 17,
+        "parent_index": 16
+      },
+      {
+        "child_index": 18,
+        "parent_index": 16
+      }
+    ],
+    "root_status": "ERROR",
+    "runtime_lane": "hosted",
+    "sequence": [
+      "invoke_agent hosted-tool-agent",
+      "chat hosted-model",
+      "execute_tool local_lookup",
+      "execute_tool local_lookup",
+      "chat hosted-model",
+      "execute_tool local_lookup",
+      "execute_tool local_lookup",
+      "chat hosted-model",
+      "execute_tool local_lookup",
+      "execute_tool local_lookup",
+      "chat hosted-model",
+      "execute_tool local_lookup",
+      "execute_tool local_lookup",
+      "chat hosted-model",
+      "execute_tool local_lookup",
+      "execute_tool local_lookup",
+      "chat hosted-model",
+      "execute_tool local_lookup",
+      "execute_tool local_lookup"
+    ],
+    "span_count": 19,
+    "task_outcome": "failed",
+    "tool_call_count": 12,
+    "trace_id": "36a88f5e661f3940f2c1717bd3bc0df3"
+  }
+]

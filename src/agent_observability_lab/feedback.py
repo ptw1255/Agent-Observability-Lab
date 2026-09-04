@@ -16,10 +16,21 @@ def outcome_aware_tool_failure_decision(report: dict[str, object]) -> dict[str, 
     finding_types = {str(finding["type"]) for finding in report.get("findings", [])}
     validation = report.get("answer_validation")
     tool_failure = "tool_failure" in finding_types
+    run_terminated = (
+        report.get("task_outcome") == "failed" or report.get("root_status") == "ERROR"
+    )
     evidence = {
         "tool_failure": tool_failure,
         "answer_validation": validation,
+        "run_terminated": run_terminated,
     }
+    if run_terminated:
+        return {
+            "type": "outcome_aware_tool_failure_decision",
+            "action": "intervene_on_next_attempt",
+            "evidence": evidence,
+            "rationale": "the runtime terminated before a validated task outcome",
+        }
     if not tool_failure:
         return {
             "type": "outcome_aware_tool_failure_decision",
@@ -60,6 +71,14 @@ def outcome_aware_decision_table() -> dict[str, object]:
         (
             "unavailable_outcome_after_tool_failure",
             {"findings": [{"type": "tool_failure"}], "answer_validation": "unavailable"},
+        ),
+        (
+            "terminated_run_after_tool_failure",
+            {
+                "findings": [{"type": "tool_failure"}, {"type": "retry_loop"}],
+                "task_outcome": "failed",
+                "root_status": "ERROR",
+            },
         ),
         ("missing_validation", {"findings": [{"type": "tool_failure"}]}),
     ]

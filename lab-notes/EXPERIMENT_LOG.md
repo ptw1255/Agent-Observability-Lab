@@ -27,3 +27,15 @@ Add one entry for each attempted experiment, including invalid or failed collect
 - **Artifacts and checksums:** Sanitized traces, analyses, oracles, scores, and feedback decision are committed under `data/published/local-v0-hosted-tool-probe-attempt-02`, `...attempt-03-failure`, and `...attempt-04-validated-failure`.
 - **Conclusion:** Telemetry reconstructed the failure and missing recovery. A minimal independent outcome class was required to avoid treating the tool failure as an automatic task failure.
 - **Next action:** Either publish the first-study assessment or run one optional hosted invalid/unavailable-outcome extension.
+
+### 2026-09-03 — `local-v0-hosted-lookup-outage`
+
+- **Question:** Can telemetry identify a real hosted retry path that should be bounded, and support an intervention recommendation when no validated outcome exists?
+- **Protocol/configuration:** Hosted comparison task with both local option lookups made unavailable; six model-turn cap; canonical local JSONL; no fault label, prompt, response text, or API key in telemetry.
+- **What changed:** Both lookup boundaries returned generic `tool_unavailable` errors on every request.
+- **Expected result:** The model might retry, stop, or report an unavailable result; the cap prevents more than six model calls.
+- **Observed result:** The model retried both lookups on every one of six turns. The trace has twelve failed tool spans, six attempts per logical lookup, root `ERROR`, and task outcome `failed`.
+- **Unexpected behavior:** The model persisted with the same pair of lookups until the cap rather than changing strategy or ending naturally.
+- **Artifacts and checksums:** Sanitized trace, analysis, and feedback decision are committed under `data/published/local-v0-hosted-tool-probe-attempt-05-lookup-outage`.
+- **Conclusion:** Tool failure, retry-loop structure, excessive model path, and terminal outcome together justified `intervene_on_next_attempt`.
+- **Next action:** Consolidate the two observed feedback branches; do not spend further hosted budget for the first study.

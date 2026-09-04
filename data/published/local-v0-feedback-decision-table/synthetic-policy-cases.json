@@ -6,6 +6,7 @@
         "action": "no_action",
         "evidence": {
           "answer_validation": "valid",
+          "run_terminated": false,
           "tool_failure": false
         },
         "rationale": "no failed tool boundary was observed",
@@ -22,6 +23,7 @@
         "action": "observe_only",
         "evidence": {
           "answer_validation": "valid",
+          "run_terminated": false,
           "tool_failure": true
         },
         "rationale": "the task outcome validated despite the tool failure",
@@ -42,6 +44,7 @@
         "action": "intervene_on_next_attempt",
         "evidence": {
           "answer_validation": "unavailable",
+          "run_terminated": false,
           "tool_failure": true
         },
         "rationale": "a tool failure coincided with an unvalidated task outcome",
@@ -57,11 +60,37 @@
       }
     },
     {
+      "case": "terminated_run_after_tool_failure",
+      "decision": {
+        "action": "intervene_on_next_attempt",
+        "evidence": {
+          "answer_validation": null,
+          "run_terminated": true,
+          "tool_failure": true
+        },
+        "rationale": "the runtime terminated before a validated task outcome",
+        "type": "outcome_aware_tool_failure_decision"
+      },
+      "report": {
+        "findings": [
+          {
+            "type": "tool_failure"
+          },
+          {
+            "type": "retry_loop"
+          }
+        ],
+        "root_status": "ERROR",
+        "task_outcome": "failed"
+      }
+    },
+    {
       "case": "missing_validation",
       "decision": {
         "action": "insufficient_evidence",
         "evidence": {
           "answer_validation": null,
+          "run_terminated": false,
           "tool_failure": true
         },
         "rationale": "the trace lacks a recognized task-outcome validation class",
