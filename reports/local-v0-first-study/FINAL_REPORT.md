@@ -31,6 +31,26 @@ Published artifacts are under [`data/published`](../../data/published/). The hum
 
 The lookup outage consumed 4,268 input tokens, 873 output tokens, and 17,559.951 ms before the six-turn cap stopped it. The trace made clear that time was overwhelmingly provider-bound, while the local tool failures themselves were near-instant. This is the operational distinction the project needed: the expensive behavior was repeated provider reasoning around a failed dependency, not slow tool execution.
 
+## How to read the hosted comparison
+
+The comparison is meaningful because the same task, model boundary, and local tools were held fixed while the availability of one dependency changed. Read it as a decision guide, not as a leaderboard for the model:
+
+```text
+healthy path:        3 model turns + 3 tool calls -> task completes
+
+one tool failure:    3 model turns + 3 tool calls -> task still validates
+                      meaning: retain the failure for reliability analysis,
+                      but do not force unnecessary recovery
+
+dependency outage:   6 model turns + 12 tool calls -> safety cap stops the run
+                      meaning: repeated work is consuming provider time and
+                      tokens without progress; intervene before another attempt
+```
+
+The bars compare scenarios **within each metric only**. A full-width bar means “largest observed value in this column,” not that tool calls, model turns, and seconds share one scale. The most important visual contrast is therefore the outage's expansion relative to the healthy path: model turns doubled, tool calls quadrupled, and the run ended without a validated result.
+
+The calculator-failure run is the equally important counterexample. Its tool failed, but the path did not expand and the answer was validated. That prevents the misleading rule “any tool failure means the agent failed.” The visualization earns its place in the report because it makes this contrast visible before the reader reaches the policy details.
+
 ## Answer to research question 1
 
 **Qualified yes—OpenTelemetry can reconstruct externally observable execution semantics well enough to identify important inefficient and failed paths at reusable agent/model/tool boundaries.**

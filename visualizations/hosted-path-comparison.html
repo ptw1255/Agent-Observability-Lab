@@ -1,0 +1,42 @@
+<div id="hosted-path-comparison" role="img" aria-label="Comparison of three hosted execution paths. The lookup outage reached six model turns, twelve tool calls, and 17.56 seconds; the successful baseline used three model turns, three tool calls, and 10.09 seconds; the calculator failure with a valid outcome used three model turns, three tool calls, and 13.14 seconds.">
+  <style>
+    #hosted-path-comparison { color: var(--foreground); }
+    #hosted-path-comparison .hpc-grid { display: grid; gap: 24px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    #hosted-path-comparison .hpc-metric { min-width: 0; }
+    #hosted-path-comparison .hpc-row { display: grid; gap: 5px; grid-template-columns: 1fr auto; margin-top: 12px; }
+    #hosted-path-comparison .hpc-label { align-items: baseline; display: flex; gap: 6px; min-width: 0; }
+    #hosted-path-comparison .hpc-swatch { background: var(--viz-series-1); display: inline-block; flex: 0 0 9px; height: 9px; }
+    #hosted-path-comparison .hpc-valid { background: var(--viz-series-2); }
+    #hosted-path-comparison .hpc-outage { background: var(--destructive); }
+    #hosted-path-comparison .hpc-track { background: color-mix(in srgb, var(--muted) 45%, transparent); grid-column: 1 / -1; height: 11px; overflow: hidden; }
+    #hosted-path-comparison .hpc-bar { background: var(--viz-series-1); height: 100%; }
+    #hosted-path-comparison .hpc-valid-bar { background: var(--viz-series-2); }
+    #hosted-path-comparison .hpc-outage-bar { background: var(--destructive); }
+    #hosted-path-comparison .hpc-value { font-variant-numeric: tabular-nums; }
+    #hosted-path-comparison h2 { margin: 0; }
+    #hosted-path-comparison h3 { margin: 16px 0 0; }
+    @media (max-width: 560px) { #hosted-path-comparison .hpc-grid { grid-template-columns: 1fr; } }
+  </style>
+  <h2>Hosted execution-path comparison</h2>
+  <div class="text-small text-muted">Each column has its own scale. Compare scenarios within a column: the outage doubled model turns, quadrupled tool calls, and ended at the safety cap; the calculator failure still produced a validated outcome.</div>
+  <div class="hpc-grid">
+    <section class="hpc-metric" aria-labelledby="hpc-turns">
+      <h3 id="hpc-turns">Model turns</h3>
+      <div class="hpc-row"><div class="hpc-label"><span class="hpc-swatch"></span>Baseline</div><span class="hpc-value">3</span><div class="hpc-track"><div class="hpc-bar" style="width:50%"></div></div></div>
+      <div class="hpc-row"><div class="hpc-label"><span class="hpc-swatch hpc-valid"></span>Valid after failure</div><span class="hpc-value">3</span><div class="hpc-track"><div class="hpc-bar hpc-valid-bar" style="width:50%"></div></div></div>
+      <div class="hpc-row"><div class="hpc-label"><span class="hpc-swatch hpc-outage"></span>Lookup outage</div><span class="hpc-value">6</span><div class="hpc-track"><div class="hpc-bar hpc-outage-bar" style="width:100%"></div></div></div>
+    </section>
+    <section class="hpc-metric" aria-labelledby="hpc-tools">
+      <h3 id="hpc-tools">Tool calls</h3>
+      <div class="hpc-row"><div class="hpc-label"><span class="hpc-swatch"></span>Baseline</div><span class="hpc-value">3</span><div class="hpc-track"><div class="hpc-bar" style="width:25%"></div></div></div>
+      <div class="hpc-row"><div class="hpc-label"><span class="hpc-swatch hpc-valid"></span>Valid after failure</div><span class="hpc-value">3</span><div class="hpc-track"><div class="hpc-bar hpc-valid-bar" style="width:25%"></div></div></div>
+      <div class="hpc-row"><div class="hpc-label"><span class="hpc-swatch hpc-outage"></span>Lookup outage</div><span class="hpc-value">12</span><div class="hpc-track"><div class="hpc-bar hpc-outage-bar" style="width:100%"></div></div></div>
+    </section>
+    <section class="hpc-metric" aria-labelledby="hpc-duration">
+      <h3 id="hpc-duration">End-to-end duration</h3>
+      <div class="hpc-row"><div class="hpc-label"><span class="hpc-swatch"></span>Baseline</div><span class="hpc-value">10.09 s</span><div class="hpc-track"><div class="hpc-bar" style="width:57.5%"></div></div></div>
+      <div class="hpc-row"><div class="hpc-label"><span class="hpc-swatch hpc-valid"></span>Valid after failure</div><span class="hpc-value">13.14 s</span><div class="hpc-track"><div class="hpc-bar hpc-valid-bar" style="width:74.8%"></div></div></div>
+      <div class="hpc-row"><div class="hpc-label"><span class="hpc-swatch hpc-outage"></span>Lookup outage</div><span class="hpc-value">17.56 s</span><div class="hpc-track"><div class="hpc-bar hpc-outage-bar" style="width:100%"></div></div></div>
+    </section>
+  </div>
+</div>

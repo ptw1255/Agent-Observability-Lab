@@ -44,7 +44,7 @@ Comparing the same runs across these profiles will show what basic telemetry can
 
 The complete v0 protocol is in [EXPERIMENT_PLAN.md](EXPERIMENT_PLAN.md). The expected learning path, outcome interpretation, and concise variable definitions are in [LEARNING_GUIDE.md](LEARNING_GUIDE.md). Collection, provenance, storage, and project-memory rules are in [DATA_MANAGEMENT.md](DATA_MANAGEMENT.md).
 
-Progress is recorded as numbered checkpoints in the [Journal](Journal/). Start with [Journal.00](Journal/Journal.00.md); [Journal.31](Journal/Journal.31.md) records the consolidated first-study report. Journal filenames use two-digit numbering so GitHub displays them in numerical order. New checkpoints continue as `Journal.N+1` with zero-padding.
+Progress is recorded as numbered checkpoints in the [Journal](Journal/). Start with [Journal.00](Journal/Journal.00.md); [Journal.32](Journal/Journal.32.md) records how to interpret the hosted-path comparison. Journal filenames use two-digit numbering so GitHub displays them in numerical order. New checkpoints continue as `Journal.N+1` with zero-padding.
 
 ## First-slice development
 
