@@ -2,6 +2,14 @@
 
 > Can OpenTelemetry reconstruct an AI agent's execution behavior well enough to identify inefficient or failed execution paths without instrumenting every business-logic step manually?
 
+## TL;DR
+
+This study found that OpenTelemetry can reconstruct the **externally visible execution path** of an AI agent without logging private reasoning or tracing every line of business logic. At shared agent, model, and tool boundaries, telemetry recovered model calls, tool calls, retries, failures, parent-child topology, latency, token growth, and safety-cap termination.
+
+The key lesson is that a tool failure is not automatically a task failure. In one real hosted run, a calculator failed, the agent did not retry, and the final answer was still independently validated as correct. The right feedback action was to observe the dependency failure, not interrupt the task. In another run, two required lookups failed repeatedly; the agent retried them until its six-turn safety cap ended the run. That evidence supported intervention on the next attempt.
+
+The practical conclusion: use telemetry to determine whether execution is progressing, repeating, failing, or becoming expensive—not to infer hidden reasoning. Combine that execution evidence with an independent outcome signal, such as a validator or workflow assertion, before acting on it.
+
 Agent Observability Lab is a laptop-sized, hands-on study of telemetry as machine-readable evidence about agent execution. It will run the same deterministic tasks under controlled failure modes, then test what a blind analyzer can infer from traces alone.
 
 The wording is intentional: this project studies **execution paths**, not hidden chain-of-thought. Telemetry may reveal calls, failures, retries, topology, latency, and cost. It generally cannot reveal a model's unrecorded intent or prove answer correctness without a separate evaluator.
