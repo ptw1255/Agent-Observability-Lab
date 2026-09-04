@@ -1,0 +1,81 @@
+{
+  "cases": [
+    {
+      "case": "no_tool_failure",
+      "decision": {
+        "action": "no_action",
+        "evidence": {
+          "answer_validation": "valid",
+          "tool_failure": false
+        },
+        "rationale": "no failed tool boundary was observed",
+        "type": "outcome_aware_tool_failure_decision"
+      },
+      "report": {
+        "answer_validation": "valid",
+        "findings": []
+      }
+    },
+    {
+      "case": "validated_tool_failure",
+      "decision": {
+        "action": "observe_only",
+        "evidence": {
+          "answer_validation": "valid",
+          "tool_failure": true
+        },
+        "rationale": "the task outcome validated despite the tool failure",
+        "type": "outcome_aware_tool_failure_decision"
+      },
+      "report": {
+        "answer_validation": "valid",
+        "findings": [
+          {
+            "type": "tool_failure"
+          }
+        ]
+      }
+    },
+    {
+      "case": "unavailable_outcome_after_tool_failure",
+      "decision": {
+        "action": "intervene_on_next_attempt",
+        "evidence": {
+          "answer_validation": "unavailable",
+          "tool_failure": true
+        },
+        "rationale": "a tool failure coincided with an unvalidated task outcome",
+        "type": "outcome_aware_tool_failure_decision"
+      },
+      "report": {
+        "answer_validation": "unavailable",
+        "findings": [
+          {
+            "type": "tool_failure"
+          }
+        ]
+      }
+    },
+    {
+      "case": "missing_validation",
+      "decision": {
+        "action": "insufficient_evidence",
+        "evidence": {
+          "answer_validation": null,
+          "tool_failure": true
+        },
+        "rationale": "the trace lacks a recognized task-outcome validation class",
+        "type": "outcome_aware_tool_failure_decision"
+      },
+      "report": {
+        "findings": [
+          {
+            "type": "tool_failure"
+          }
+        ]
+      }
+    }
+  ],
+  "synthetic": true,
+  "type": "outcome_aware_decision_table"
+}

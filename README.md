@@ -44,7 +44,7 @@ Comparing the same runs across these profiles will show what basic telemetry can
 
 The complete v0 protocol is in [EXPERIMENT_PLAN.md](EXPERIMENT_PLAN.md). The expected learning path, outcome interpretation, and concise variable definitions are in [LEARNING_GUIDE.md](LEARNING_GUIDE.md). Collection, provenance, storage, and project-memory rules are in [DATA_MANAGEMENT.md](DATA_MANAGEMENT.md).
 
-Progress is recorded as numbered checkpoints in the [Journal](Journal/). Start with [Journal.00](Journal/Journal.00.md); [Journal.26](Journal/Journal.26.md) records the outcome-aware feedback decision. Journal filenames use two-digit numbering so GitHub displays them in numerical order. New checkpoints continue as `Journal.N+1` with zero-padding.
+Progress is recorded as numbered checkpoints in the [Journal](Journal/). Start with [Journal.00](Journal/Journal.00.md); [Journal.27](Journal/Journal.27.md) records the complete outcome-aware decision table. Journal filenames use two-digit numbering so GitHub displays them in numerical order. New checkpoints continue as `Journal.N+1` with zero-padding.
 
 ## First-slice development
 
@@ -55,7 +55,7 @@ pytest -q
 
 The tests validate span export, parent topology, failure recording, and blind detection. They do not run the planned 75-run experiment.
 
-The current first slice has 39 passing tests, three task types, five execution conditions, evidence projections, scoring utilities, a complete 75-run local matrix, retry-feedback and safety comparisons, duplicate-suppression results, a calibrated hosted probe, a five-run hosted cost baseline, a hosted cost-envelope observation, a successful hosted tool trace, a scored hosted baseline-path oracle, observed hosted tool failures without retry, a validated answer after one such failure, and an outcome-aware feedback decision. The next step is to complete the decision table locally and assess the experiment.
+The current first slice has 40 passing tests, three task types, five execution conditions, evidence projections, scoring utilities, a complete 75-run local matrix, retry-feedback and safety comparisons, duplicate-suppression results, a calibrated hosted probe, a five-run hosted cost baseline, a hosted cost-envelope observation, a successful hosted tool trace, a scored hosted baseline-path oracle, observed hosted tool failures without retry, a validated answer after one such failure, and a complete outcome-aware feedback decision table. The next step is a project checkpoint and research assessment.
 
 ## References
 

@@ -11,6 +11,7 @@ from .analyzer import analyze
 from .feedback import (
     DuplicateSuppressionFeedback,
     RetryBudgetFeedback,
+    outcome_aware_decision_table,
     outcome_aware_tool_failure_decision,
 )
 from .hosted import configuration, run_baseline, run_cost_probe, run_probe, run_tool_probe
@@ -69,6 +70,11 @@ def main() -> None:
     )
     feedback_parser.add_argument("--analysis", type=Path, required=True)
     feedback_parser.add_argument("--output", type=Path)
+
+    feedback_table_parser = subparsers.add_parser(
+        "feedback-decision-table", help="render synthetic outcome-aware policy cases"
+    )
+    feedback_table_parser.add_argument("--output", type=Path, required=True)
 
     oracle_parser = subparsers.add_parser("oracle", help="build one sealed baseline oracle")
     oracle_parser.add_argument("--input", type=Path, required=True)
@@ -196,6 +202,12 @@ def main() -> None:
             args.output.write_text(rendered + "\n", encoding="utf-8")
         else:
             print(rendered)
+    elif args.command == "feedback-decision-table":
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(
+            json.dumps(outcome_aware_decision_table(), indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
     elif args.command == "feedback-decision":
         report = json.loads(args.analysis.read_text(encoding="utf-8"))
         if isinstance(report, list):

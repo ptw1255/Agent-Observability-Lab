@@ -49,6 +49,34 @@ def outcome_aware_tool_failure_decision(report: dict[str, object]) -> dict[str, 
     }
 
 
+def outcome_aware_decision_table() -> dict[str, object]:
+    """Render transparent synthetic policy cases; these are not observed traces."""
+    cases = [
+        ("no_tool_failure", {"findings": [], "answer_validation": "valid"}),
+        (
+            "validated_tool_failure",
+            {"findings": [{"type": "tool_failure"}], "answer_validation": "valid"},
+        ),
+        (
+            "unavailable_outcome_after_tool_failure",
+            {"findings": [{"type": "tool_failure"}], "answer_validation": "unavailable"},
+        ),
+        ("missing_validation", {"findings": [{"type": "tool_failure"}]}),
+    ]
+    return {
+        "type": "outcome_aware_decision_table",
+        "synthetic": True,
+        "cases": [
+            {
+                "case": name,
+                "report": report,
+                "decision": outcome_aware_tool_failure_decision(report),
+            }
+            for name, report in cases
+        ],
+    }
+
+
 class RetryBudgetFeedback:
     """Stop a retry loop after repeated failures of one logical operation."""
 
