@@ -73,3 +73,11 @@ The excessive path is visible even in P0 because five nested reflection spans ch
 ## Market thesis
 
 The cost-observability segment will value baseline-relative path analysis more than a universal token threshold. AI platform teams need to know whether higher spend came from more calls, deeper orchestration, larger context, or normal model variance. A product that shows the execution source of cost can complement FinOps dashboards without declaring every expensive response wasteful.
+
+## Supporting market detail
+
+The abnormal run reaches depth six, makes seven model calls, and records 360 output tokens while the calculator succeeds and the answer remains correct. P0 sees the structural expansion; P1 quantifies its token cost; P2 adds no new finding for this condition. The first oracle incorrectly flattened the nested reflections, proving that an inaccurate reference graph can make correct telemetry look wrong. A production offer must build envelopes by task and preserve the path behind each cost alert so an engineer can judge whether the extra work was justified.
+
+## Conclusion
+
+Path-aware cost diagnosis must show where execution expanded and which baseline made it abnormal.

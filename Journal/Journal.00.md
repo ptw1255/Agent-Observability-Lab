@@ -61,3 +61,11 @@ This checkpoint fixed the unit of proof before code existed: a trace-derived cla
 ## Market thesis
 
 The agent-observability market will value a reproducible proof standard because vendors currently compete on how much telemetry they collect and display. Buyers still need evidence that a given field changes diagnosis accuracy or incident response. A benchmark that identifies the minimum sufficient telemetry can influence platform requirements, procurement tests, and integration standards.
+
+## Supporting market detail
+
+The 75-run design gives a future buyer a fixed workload, known fault conditions, and a withheld answer key. P0, P1, and P2 create a field-by-field test instead of one product-level accuracy claim. A vendor can run the protocol against its exporter and show exactly which diagnoses survive its default telemetry. An enterprise architect can use the same output to reject fields that add storage or privacy exposure without changing a measured result.
+
+## Conclusion
+
+The project begins as a testable standard for deciding which agent telemetry earns its collection cost.

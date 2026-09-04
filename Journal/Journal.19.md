@@ -44,3 +44,11 @@ The cost-stress request used 2,988 output tokens and 30.0 seconds, exceeding bot
 ## Market thesis
 
 Cost observability is a distinct vertical inside agent observability. Its target user needs to know whether spend changed because a call became larger or because the agent executed more steps. Keeping cost-envelope alerts separate from path diagnostics lets vendors route the first to FinOps and the second to reliability engineering.
+
+## Supporting market detail
+
+The stress run reaches 2,988 output tokens and 30.0 seconds against envelopes of 630 tokens and 9.2 seconds. Both the baseline and stress traces contain one model call at depth one, so their execution graphs are equivalent. The cost observation belongs in a FinOps or model-performance queue, while no path finding belongs in a retry or orchestration queue. This routing distinction prevents a reliability team from investigating a topology defect that the trace does not contain.
+
+## Conclusion
+
+The hosted stress test proves that cost anomalies and execution-path anomalies need separate findings and owners.

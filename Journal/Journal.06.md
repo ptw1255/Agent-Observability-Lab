@@ -50,3 +50,11 @@ All profiles locate the failed calculator and reconstruct the recovery topology,
 ## Market thesis
 
 Reliability teams will pay for failure attribution only when the evidence explains what recovered and what remained broken. Attempt correlation turns a collection of error spans into an incident narrative that an on-call engineer can act on. This capability fits agent-observability products that must distinguish transient dependency failure from repeated independent calls.
+
+## Supporting market detail
+
+The transient run contains one failed calculator, one recovery model turn, and one successful calculator attempt. P0 and P1 detect the failed span and reconstruct all six operations, yet they cannot show that the two calculator spans belong to attempts one and two of the same operation. P2 carries the logical-operation ID and attempt number that close this gap. An incident product can use those fields to group recovery evidence, assign one owner, and avoid opening separate alerts for each attempt.
+
+## Conclusion
+
+Attempt correlation converts two calculator spans into one recoverable dependency incident.

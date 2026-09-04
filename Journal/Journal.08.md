@@ -45,3 +45,11 @@ Redundancy is the first finding that fails under both P0 and P1 and succeeds und
 ## Market thesis
 
 Execution-efficiency products need more than cost dashboards because a high call count can reflect necessary work. Teams operating agents with paid search, database, or SaaS tools will value a content-minimized way to identify repeated equivalent requests. The market claim should remain “candidate duplicate” until task context or human review confirms that the second call added no value.
+
+## Supporting market detail
+
+P0 and P1 reconstruct seven spans and still score zero recall for the duplicate finding. P2 changes only the evidence available to the analyzer and reaches precision 1.0 and recall 1.0 because it retains the argument fingerprint. That result gives privacy reviewers a narrow reason to approve a non-reversible input signature. Product teams can require a reviewer or evaluator to confirm the candidate before attaching savings or suppressing the next call.
+
+## Conclusion
+
+The argument fingerprint is the minimum measured field for content-minimized duplicate detection in this workload.

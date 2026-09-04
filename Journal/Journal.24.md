@@ -54,3 +54,11 @@ The three-state validator adds task outcome without adding transcript content to
 ## Market thesis
 
 Verticals with explicit task contracts—transaction routing, document classification, workflow completion, and structured support actions—can use compact outcome signals alongside traces. This gives reliability teams a way to correlate execution defects with business completion while limiting content collection. The market value depends on integrating with an outcome source the customer already trusts.
+
+## Supporting market detail
+
+The root records one of `valid`, `invalid`, or `unavailable` after the agent loop completes. The validator compares the final response with the sealed option ID and exports only the class, keeping response text outside telemetry. This supports a product integration with workflow state, unit-test results, human approval, or downstream business completion. A buyer must approve the validator as the outcome authority because the trace cannot create that truth by itself.
+
+## Conclusion
+
+A three-state outcome signal closes the gap between execution completion and task completion for workflows with trusted validators.

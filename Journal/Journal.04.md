@@ -55,3 +55,11 @@ The ablation makes telemetry design measurable. P0 tests what generic tracing co
 ## Market thesis
 
 Observability vendors and enterprise platform teams need evidence for schema decisions because every captured attribute adds storage, integration, and privacy cost. A scored ablation can show which GenAI fields are table stakes and which enriched fields produce a diagnostic return. That evidence is useful to product managers defining defaults and to architects approving telemetry contracts.
+
+## Supporting market detail
+
+P0 carries span identity, timing, status, and parentage; P1 adds provider, model, tool, errors, and tokens; P2 adds operation correlation and fingerprints. The analyzer produces the same score categories for every profile, which makes the effect of each field group visible. Product managers can map a missing capability to a specific attribute instead of expanding capture by default. Security reviewers can approve a smaller contract when the richer profile produces no gain for the target finding.
+
+## Conclusion
+
+The profile design turns telemetry scope into an evidence-backed product decision.

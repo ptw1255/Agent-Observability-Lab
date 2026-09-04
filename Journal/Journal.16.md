@@ -43,3 +43,11 @@ The first hosted request proves that the same boundary format can carry a real p
 ## Market thesis
 
 AI platform teams will value an observability system that identifies distribution shifts between local tests and hosted models before alert rules reach production. False cost alarms erode trust quickly because reasoning-capable models can report usage patterns absent from scripted controls. A product that preserves raw measurements while withholding an unsupported finding has a stronger reliability proposition.
+
+## Supporting market detail
+
+The hosted call records two spans, 33 input tokens, 511 output tokens, 448 reasoning tokens, and a clean root. The analyzer labels it excessive solely because the local rule triggers at 300 output tokens. One model call at depth one supplies no structural evidence of an expanded path. A production buyer needs the system to retain the usage record, mark the rule as miscalibrated for this lane, and avoid opening a false incident.
+
+## Conclusion
+
+The first hosted trace validates field capture and invalidates direct reuse of the deterministic token threshold.

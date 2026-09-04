@@ -61,3 +61,11 @@ The first end-to-end score separates structural observability from resource obse
 ## Market thesis
 
 AI engineering leaders often buy observability for two different outcomes: debugging execution and controlling model spend. This checkpoint shows that those outcomes depend on different evidence classes. A vendor or internal platform can use that distinction to offer a low-content structural tier and a richer cost-accounting tier without claiming that both provide the same diagnosis.
+
+## Supporting market detail
+
+All three profiles recover the four-operation invoice sequence and score 1.0 on topology edges. P0 loses token totals because those values live in attributes, while P1 restores them with standard GenAI fields. The buyer can separate a debugging requirement from a cost-reporting requirement and select the smaller data contract when token accounting is outside scope. This also gives a vendor a direct test for whether its OpenTelemetry export preserves the fields shown in its own dashboard.
+
+## Conclusion
+
+Healthy-path reconstruction needs structure, while model-cost accounting needs GenAI usage attributes.

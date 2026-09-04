@@ -46,3 +46,11 @@ Five runs establish a narrow reference distribution: identical two-span topology
 ## Market thesis
 
 The cost-observability user is an AI platform or FinOps owner who needs baselines by model, task, and execution shape. Global averages hide the difference between a normal reasoning-heavy response and an expanded agent path. A product that stores comparable cohorts and reports their envelopes can support budget review without labeling every expensive call defective.
+
+## Supporting market detail
+
+Five calls to the same model and prompt keep input tokens fixed at 33 while output tokens vary from 360 to 504. Duration varies from 4.1 to 7.4 seconds even though every trace contains one root and one model span. The cohort proves that stable topology does not imply stable provider cost. A cost product should key its baseline by model, task, reasoning setting, and path shape before calculating an envelope.
+
+## Conclusion
+
+Hosted cost alerts require comparable cohorts because normal provider variance exceeds the local deterministic threshold.

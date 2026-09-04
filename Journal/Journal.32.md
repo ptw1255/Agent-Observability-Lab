@@ -42,3 +42,11 @@ The interpretation rule prevents two common reading errors: comparing bars that 
 ## Market thesis
 
 Executive buyers need agent-observability reports that connect technical evidence to a decision. A visualization that separates tolerated dependency failure from a costly retry loop can support budget, reliability, and control reviews. The target user still needs drill-down links to spans, while the executive view should show the action, evidence, and measured consequence.
+
+## Supporting market detail
+
+The healthy path, calculator failure, and lookup outage use different scales for spans, calls, tokens, and duration. The interpretation text directs readers to compare within each metric, inspect path expansion, and then apply the outcome class. This prevents a failed calculator with a valid answer from receiving the same action as twelve failed lookups and an unavailable outcome. An executive view can summarize that decision while preserving trace links for the engineer who must verify it.
+
+## Conclusion
+
+The final visualization communicates proportional action only when each metric stays tied to execution shape and outcome.

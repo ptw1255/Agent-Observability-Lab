@@ -49,3 +49,11 @@ The oracle scores stable semantics—seven spans, six edges, three model turns, 
 ## Market thesis
 
 Regulated and high-consequence users will value an explicit expected-path contract because it turns a trace into auditable evidence. The contract can show that a required operation was skipped or retried without claiming access to model intent. An observability offering can package this as workflow conformance for tasks whose valid execution graph is known.
+
+## Supporting market detail
+
+The oracle expects seven spans, six edges, three model calls, three tools, depth two, first-attempt success, and no findings. It excludes exact latency and token totals because those values can vary across correct hosted executions. The observed run matches the stable contract exactly, including 1.0 topology edge F1. A workflow owner can use this form of oracle to detect a skipped approval, missing tool, or unexpected retry without imposing a universal cost limit.
+
+## Conclusion
+
+The hosted oracle defines conformance through stable execution semantics rather than volatile provider usage.

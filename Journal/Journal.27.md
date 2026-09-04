@@ -58,3 +58,11 @@ The decision table makes policy behavior reviewable before automation: the same 
 ## Market thesis
 
 Enterprise governance teams will value a versioned decision table because it exposes when an agent system observes, retries, escalates, or declines to act. The table can become an approval artifact for runtime controls and a regression test after policy changes. Its commercial value comes from auditability and predictable action, not from the number of automated decisions.
+
+## Supporting market detail
+
+Forty tests confirm deterministic behavior across the four evidence combinations, and the artifact marks synthetic rows explicitly. The observed calculator run validates only the `observe_only` row, so governance reviewers can separate tested policy behavior from live model evidence. Each recommendation can carry the policy version, evidence fields, and source trace for later audit. The remaining live gap is the `intervene_on_next_attempt` branch under an unavailable or invalid outcome.
+
+## Conclusion
+
+The decision table supplies an auditable control contract while preserving the boundary between synthetic coverage and observed behavior.

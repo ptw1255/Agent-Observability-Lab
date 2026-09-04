@@ -55,3 +55,11 @@ The same analyzer rule now covers calculator and retrieval spans, so the diagnos
 ## Market thesis
 
 AI platform teams will value observability that works across tool types without copying business content into a vendor system. Retrieval-heavy products in customer support, enterprise search, and knowledge management face both traceability and data-governance requirements. A boundary contract that identifies the failing source while withholding document text gives those teams a lower-risk adoption path.
+
+## Supporting market detail
+
+The retrieval trace identifies `local_retrieval` and `returns-policy-v1` while excluding the policy text and expected answer. The analyzer uses the same `execute_tool` rule for retrieval and calculation, reducing the number of tool-specific integrations a platform team must maintain. Argument fingerprints support equivalence checks without placing the original query in telemetry. These properties fit organizations that must diagnose agent access to internal documents while limiting data copied into an observability system.
+
+## Conclusion
+
+The retrieval checkpoint shows that cross-tool diagnosis and content minimization can share one telemetry contract.

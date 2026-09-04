@@ -17,7 +17,7 @@ We ran the policy over the real validated-failure trace from Journal.25. It retu
 
 This is a feedback decision, not an in-flight interruption. The answer-validation class becomes available only after the agent run ends, so the policy cannot go back in time and make the failed calculator succeed. It can determine what a runtime, scheduler, or human workflow should do next: retain the failure as an operational signal, request a new attempt, route for review, or take no action.
 
-That timing constraint is useful rather than embarrassing. It keeps the claim precise. Runtime telemetry can inform a control loop, but the appropriate control point depends on when evidence becomes available. Some evidence, such as repeated tool errors, can support in-run action. Outcome validation supports post-run action.
+That timing constraint defines the claim. Runtime telemetry can inform a control loop, and the appropriate control point depends on when evidence becomes available. Some evidence, such as repeated tool errors, can support in-run action. Outcome validation supports post-run action.
 
 ## Why this checkpoint matters
 
@@ -63,3 +63,11 @@ The policy converts two evidence fields into four explicit actions and correctly
 ## Market thesis
 
 The first commercial user for outcome-aware feedback is an AI operations team managing retries, review queues, and incident routing. That team needs decisions that name both the execution evidence and the outcome evidence. A product can earn trust by making `insufficient_evidence` a supported result instead of forcing an intervention from incomplete telemetry.
+
+## Supporting market detail
+
+The policy maps no failure to `no_action`, failure plus valid outcome to `observe_only`, failure plus invalid or unavailable outcome to `intervene_on_next_attempt`, and missing validation to `insufficient_evidence`. The real hosted calculator trace exercises the restraint branch and records both inputs behind its recommendation. Because the outcome arrives after completion, the action belongs in the next-run scheduler, alert, or review queue. A product owner can version this table, measure each branch, and prohibit automatic action when the validation field is absent.
+
+## Conclusion
+
+The decision policy is market-ready as an explainable post-run recommendation, with autonomous intervention still outside scope.

@@ -53,3 +53,11 @@ The live model did not follow the expected recovery path: seven spans appeared i
 ## Market thesis
 
 Customer-support and workflow agents need observability that distinguishes a dependency error from failed recovery. An on-call engineer can act on the missing retry branch even when the process exits cleanly. Vendors that report only root status or error counts will miss this class of incomplete execution.
+
+## Supporting market detail
+
+The live trace contains seven spans against the nine-span recovery oracle, three model calls against four, and three tools against four. Failure detection remains perfect because the calculator span is marked `ERROR`, while topology F1 falls to 0.8571 because the retry branch never appears. The root completes cleanly, so a root-status dashboard would understate the failed dependency and missing recovery. An incident product should present the error span and absent expected branch together and request an independent outcome check.
+
+## Conclusion
+
+The first hosted failure proves that clean runtime completion can coexist with a missing required recovery path.

@@ -46,4 +46,12 @@ The unchanged transient and comparison controls establish two safety properties 
 
 ## Market thesis
 
-Risk-sensitive buyers will judge agent controls by false interventions, not only by waste removed. A reliability product must report successful recoveries and untouched valid paths alongside savings. The first buyer is likely an AI platform lead who can compare operational cost reduction with task-success regression risk.
+Risk-sensitive buyers will judge agent controls by both false interventions and waste removed. A reliability product must report successful recoveries and untouched valid paths alongside savings. The first buyer is likely an AI platform lead who can compare operational cost reduction with task-success regression risk.
+
+## Supporting market detail
+
+The transient control still uses two tool calls and three model calls and returns `64.64` with feedback active. The comparison control still performs lookup A, lookup B, and calculation and returns `option-a-v1`. Neither run records a feedback action, which confirms that the current retry rule stays inactive outside its target pattern. A pilot report should present these preserved outcomes beside avoided calls so the buyer can see both benefit and regression exposure.
+
+## Conclusion
+
+The retry policy clears its first safety gate by leaving one recoverable failure and one required multi-tool path unchanged.

@@ -43,3 +43,11 @@ The recalibration removes the unsupported finding while preserving 33 input toke
 ## Market thesis
 
 The buyer for production agent monitoring needs low false-positive rates more than aggressive anomaly counts. Lane-aware calibration lets an AI platform team compare scripted tests, hosted models, and future providers without imposing one token threshold on all of them. A vendor can turn that capability into a model-onboarding check and a defensible alert policy.
+
+## Supporting market detail
+
+The revised analyzer reports no path finding while preserving the 511 output tokens and 8.8-second duration for cost analysis. The deterministic excessive-path case still fires because depth and model-call thresholds remain intact. This isolates the rule change to hosted token interpretation instead of reducing detection across all lanes. A model-onboarding workflow can run the same calibration before a team copies local alerts into production.
+
+## Conclusion
+
+Lane-aware calibration corrects the hosted false positive without weakening the structural detector.

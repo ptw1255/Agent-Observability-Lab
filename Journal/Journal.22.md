@@ -46,4 +46,12 @@ The simulated provider test proves that the hosted adapter can represent a faile
 
 ## Market thesis
 
-Observability vendors can use controlled fault injection to test whether their agent traces support recovery analysis. The target user is a platform engineer validating an agent before production, not only an on-call engineer reviewing an outage. A packaged failure probe can turn integration testing into evidence about retry behavior and missing telemetry fields.
+Observability vendors can use controlled fault injection to test whether their agent traces support recovery analysis. Platform engineers can use the probe before production, and on-call engineers can use the same evidence during an outage. A packaged failure probe can turn integration testing into evidence about retry behavior and missing telemetry fields.
+
+## Supporting market detail
+
+The simulated path contains four model turns, four tools, one calculator error, and attempts `[1, 1, 1, 2]`. The trace records the same logical-operation ID and fingerprint on both calculator attempts while withholding the fault-mode label. This gives a platform engineer a pre-production test for failure, retry, and recovery evidence before a live provider run. A vendor can ship the probe as an integration check and report exactly which fields disappear through its exporter or backend.
+
+## Conclusion
+
+Controlled failure injection converts trace integration into a measurable recovery-readiness test.

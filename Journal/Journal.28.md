@@ -74,3 +74,11 @@ The checkpoint answers both research questions at the tested scope. Boundary spa
 ## Market thesis
 
 The agent-observability market will mature from trace display toward evidence-backed decisions. This study suggests that execution telemetry and outcome evaluation are separate inputs that must converge before automation. A focused diagnostic layer can serve existing observability platforms by providing that decision logic without owning trace storage.
+
+## Supporting market detail
+
+The deterministic matrix scores execution findings across 225 profile analyses, and the hosted lane supplies one exact baseline graph plus two no-retry calculator failures. One later failure includes a valid outcome and produces `observe_only`, proving that the decision needs both execution and task evidence. Multiple models, incomplete traces, asynchronous paths, and live automatic actions remain untested. This evidence profile supports a diagnostic pilot with human adjudication rather than an autonomous-control sale.
+
+## Conclusion
+
+The first study supports an execution-diagnostic offering whose recommendations remain bounded by independent outcome evidence.

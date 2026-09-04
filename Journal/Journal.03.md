@@ -61,3 +61,11 @@ This checkpoint creates the negative control required for duplicate detection. T
 ## Market thesis
 
 Tool-heavy agents create a specific observability segment around execution efficiency. Buyers will reject detectors that flag every multi-tool workflow as waste because valid agents often need several data sources. A product that distinguishes necessary fan-out from repeated equivalent work can serve workflow-automation and customer-support teams that pay for both model calls and external tools.
+
+## Supporting market detail
+
+The healthy comparison requires lookup A, lookup B, and one calculator call, so three tools alone cannot establish waste. The injected run adds a second option-B lookup with the same fingerprint and no new input dependency. This creates a concrete procurement question: can the observability system distinguish required multi-source work from an equivalent repeated request? Teams paying per search, database query, or SaaS action can attach a unit cost to the confirmed duplicate after human or task-level review.
+
+## Conclusion
+
+Duplicate-call value starts with argument identity and ends with task-aware confirmation.

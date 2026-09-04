@@ -43,3 +43,11 @@ The policy removed one repeated lookup, preserved `option-a-v1`, and left the th
 ## Market thesis
 
 Workflow-automation teams can value duplicate suppression when external tool calls carry latency, rate limits, or transaction fees. The feature requires an explicit idempotence and freshness contract, which makes it more suitable for platform-managed read tools than arbitrary third-party actions. A commercial offer should pair the savings estimate with the list of tools approved for reuse.
+
+## Supporting market detail
+
+The unsuppressed path uses four tools, while the feedback path uses three and returns the same `option-a-v1` result. The baseline also uses three tools and records no suppression, showing that distinct fingerprints survive the cache rule. These results apply to deterministic, read-only fixtures whose outputs cannot change between calls. A customer deployment must classify each tool by side effects, freshness window, identity scope, and cache permission before suppression is allowed.
+
+## Conclusion
+
+Duplicate suppression is ready for controlled read tools and remains unsafe for unclassified actions.

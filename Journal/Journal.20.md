@@ -49,3 +49,11 @@ This is the first real model-selected tool graph in the study. The trace attribu
 ## Market thesis
 
 Teams operating customer-facing agents need to separate provider latency from local tool latency before assigning incident ownership. This trace gives an AI platform lead that split without storing model reasoning or business payloads. The same causal graph can support provider reviews, context-growth controls, and later failure diagnosis.
+
+## Supporting market detail
+
+Three provider calls consume roughly 4,167 ms, 4,442 ms, and 1,456 ms; all local tools together consume about 0.135 ms. Input tokens rise from 141 to 542 to 904 because each stateless request carries earlier function-call context. The trace assigns performance work to provider interaction and context management rather than local lookup code. A customer-facing agent team can use this split to prioritize prompt-state design before optimizing sub-millisecond tools.
+
+## Conclusion
+
+The first hosted tool trace identifies provider latency and context growth as the dominant costs of the successful path.

@@ -56,3 +56,11 @@ The second hosted failure repeats the seven-span, no-retry path and adds the dec
 ## Market thesis
 
 Production agent teams will value systems that reduce false recovery actions as much as systems that detect errors. The target buyer owns both availability and model/tool spend, so a correct outcome after a dependency failure should remain visible without triggering automatic reruns. This restraint can differentiate a feedback product from alerting systems that map every error to the same action.
+
+## Supporting market detail
+
+The run contains one failed calculator, no second attempt, topology F1 of 0.8571 against the recovery oracle, and `answer_validation = valid`. The model still selects the correct option because both delivered totals are present in the successful lookup results. An automatic failure-only policy would rerun or interrupt a task that already met its contract. A reliability product should retain the calculator incident for aggregation and suppress task-level recovery for this completed run.
+
+## Conclusion
+
+Outcome validation turns the same tool failure from an intervention trigger into an observe-only reliability event.

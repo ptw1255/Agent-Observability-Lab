@@ -47,4 +47,12 @@ The lookup outage removes both sources of task data while leaving model behavior
 
 ## Market thesis
 
-Agents that depend on retrieval, customer records, or external APIs need observability for dependency starvation, not only individual tool errors. Reliability teams care about whether the agent backs off, switches sources, or repeats an unavailable request. A controlled outage study can validate that behavior before the same pattern creates customer-facing latency and spend.
+Agents that depend on retrieval, customer records, or external APIs need observability for both dependency starvation and individual tool errors. Reliability teams care about whether the agent backs off, switches sources, or repeats an unavailable request. A controlled outage study can validate that behavior before the same pattern creates customer-facing latency and spend.
+
+## Supporting market detail
+
+Both option lookups return `tool_unavailable`, removing every tool-supplied price from the task. The prompt and schemas remain fixed, so the hosted model controls whether it retries, stops, or produces an unsupported choice. A six-turn cap limits paid exposure while preserving the attempt sequence and final outcome class. This scenario matches production failures in which an agent loses a required retrieval or API dependency and must choose a bounded fallback.
+
+## Conclusion
+
+The lookup outage tests whether observability can distinguish dependency starvation from one isolated tool error.

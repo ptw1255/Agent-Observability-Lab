@@ -10,7 +10,7 @@ The policy is opt-in. When it intervenes, the runtime records `agent_observabili
 
 Detection and intervention are separate claims. A trace analyzer may correctly identify a retry loop, but that does not show that feeding the finding back into the runtime improves execution. Feedback can also create new failure modes, such as stopping too early or hiding a legitimate repeated call.
 
-The feedback signal must include evidence, not only a label. This policy uses the logical operation and repeated failed tool attempts as its evidence. A production policy would also need a rule version, threshold, affected operation, and an audit record of the action.
+The feedback signal includes the logical operation and repeated failed tool attempts behind its label. A production policy would also need a rule version, threshold, affected operation, and an audit record of the action.
 
 ## Why this checkpoint matters
 
@@ -51,3 +51,11 @@ The policy reduced a terminal loop from three failed tools and four model calls 
 ## Market thesis
 
 The agent-runtime control segment will value observability when it changes a paid execution before the budget is exhausted. AI platform owners can justify the feature through avoided model and tool calls, while reliability owners need an audit record of the rule and action. Commercial adoption depends on proving that the same policy preserves recoverable work.
+
+## Supporting market detail
+
+The feedback run removes one failed tool attempt, two model calls, and 40 output tokens from a terminal loop. It preserves the failed task outcome, so the measured benefit is avoided work rather than an invented recovery. The root attribute records `stop_retry_loop`, giving a reviewer the action that changed the trace. A buyer can calculate savings from avoided attempts only after the policy passes the recovery controls in the next checkpoint.
+
+## Conclusion
+
+The first feedback result proves cost reduction inside one known terminal loop and sets safety as the next buying requirement.

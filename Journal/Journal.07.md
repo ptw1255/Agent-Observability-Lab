@@ -60,3 +60,11 @@ The trace exposes both the repeated calculator failures and the terminal budget 
 ## Market thesis
 
 Retry storms are a direct bridge between agent observability and operational cost control. The target buyer is an AI platform or reliability lead responsible for failure rate, latency, and provider spend. A system that attributes repeated attempts to one logical operation can support alerts today and bounded retry controls after the signal is proven safe.
+
+## Supporting market detail
+
+The retry trace ends after three failed calculator attempts and four model calls, with both the tool spans and root marked as failed. P0 and P1 can recognize repeated failed structure after the run; P2 records the exact `[1, 2, 3]` attempt sequence. An alerting product can group the eight spans into one retry-loop incident instead of seven independent events. A runtime-control product needs the same evidence before attempt three and must prove that stopping early does not suppress a later recovery.
+
+## Conclusion
+
+Retry-loop detection becomes commercially useful when it supports one attributed incident and a tested stop rule.

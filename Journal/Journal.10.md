@@ -58,3 +58,11 @@ The 75 runs and 225 profile analyses convert five illustrative traces into a sta
 ## Market thesis
 
 The broader market can use this matrix as a benchmark for claims about agent trace quality. Platform buyers can ask vendors to demonstrate diagnosis across controlled failure modes instead of accepting screenshots or unscored examples. The commercial value lies in making telemetry sufficiency and detector limitations testable before production deployment.
+
+## Supporting market detail
+
+The matrix repeats each of three tasks under five conditions five times, producing 75 executions and 225 profile analyses. Every profile preserves exact sequence and topology in the harness, while duplicate recall remains zero in P0 and P1 across all 15 redundant runs. P2 restores duplicate recall across all three task types, tying the improvement to one boundary field rather than a single trace. A vendor benchmark can publish these per-condition rates and disclose where its default export fails before a customer relies on the detector.
+
+## Conclusion
+
+The matrix turns a set of demonstrations into a repeatable telemetry-capability scorecard.

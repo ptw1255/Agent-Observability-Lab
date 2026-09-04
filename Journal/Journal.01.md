@@ -61,3 +61,11 @@ The first slice proves that one reusable boundary contract can produce an execut
 ## Market thesis
 
 The first target user is the engineer on call for a production agent. That user needs a trace to name the failed model or tool operation without exposing experimental labels or private reasoning. A product that preserves this blindness boundary can support incident diagnosis while reducing the privacy cost of agent observability.
+
+## Supporting market detail
+
+The first trace gives the on-call engineer four named operations and a parent-child path from agent to model to calculator. The initial exception text would have disclosed the test condition, so the replacement `tool_unavailable` signal demonstrates the minimum error detail required for blind diagnosis. This matters in production because vendor-generated labels can hide whether a detector inferred a problem or merely repeated metadata supplied by the runtime. A buyer can use the blindness test as an acceptance criterion for any automated root-cause feature.
+
+## Conclusion
+
+An agent-observability product earns trust when it derives the failure from ordinary runtime evidence.

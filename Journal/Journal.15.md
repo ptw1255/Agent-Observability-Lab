@@ -42,3 +42,11 @@ The credential-free check validates configuration and the failed credentialed at
 ## Market thesis
 
 Observability integrations compete on time to first valid trace, so certificate, credential, and exporter failures are part of the product experience. Developer-platform teams value a check-only mode because it exposes configuration blockers before paid calls begin. A market-ready diagnostic package should treat setup validation as a first-class deliverable, especially for self-managed environments.
+
+## Supporting market detail
+
+The check-only command confirms configuration without sending a billable request, which gives developers a safe first step. The first live attempt stops at certificate verification and produces no provider response or external trace. Adding `certifi` fixes the local trust store while keeping TLS verification active. A self-managed pilot should report this class of blocker separately from model, instrumentation, and backend failures so the correct owner receives it.
+
+## Conclusion
+
+Preflight validation reduces paid-test waste and assigns environment failures before the first hosted trace.

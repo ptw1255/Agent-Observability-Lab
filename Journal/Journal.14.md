@@ -71,3 +71,11 @@ This checkpoint converts perfect local scores into a bounded conclusion and name
 ## Market thesis
 
 The agent-observability market needs capability maps that separate reconstruction, diagnosis, and control. Buyers can use those layers to decide whether they need a trace viewer, a diagnostic engine, or a runtime policy. The study is most useful to teams moving from dashboards to automated action because it states where evidence stops supporting the next decision.
+
+## Supporting market detail
+
+The local matrix provides 225 scored analyses for reconstruction and diagnosis, while feedback evidence covers one stopped loop, one preserved recovery, and one preserved multi-tool baseline. That imbalance shows where product maturity differs: the analyzer has repeated controlled evidence, and the controller has three narrow cases. A buyer can adopt the analysis layer before granting runtime authority. The next hosted lane tests exporter and model portability without weakening the local claims.
+
+## Conclusion
+
+The evidence supports diagnostic adoption now and limits automated control to experiments with explicit safety cases.

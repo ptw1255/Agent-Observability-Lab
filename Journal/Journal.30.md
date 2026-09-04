@@ -66,3 +66,11 @@ The six-turn cap stopped a live path containing six attempts for each unavailabl
 ## Market thesis
 
 This is the clearest commercial result for AI platform and reliability buyers because it connects trace evidence to bounded cost control. A production product could detect repeated logical failures before a configured turn budget is exhausted and recommend a safer next action. Buyers will require the same proof across several tasks and models before authorizing autonomous intervention.
+
+## Supporting market detail
+
+The live model repeats lookup A and lookup B on all six turns, producing twelve failed tool spans with attempts one through six for each logical operation. The path consumes 4,268 input tokens, 873 output tokens, and 17.56 seconds before the cap records root `ERROR`, failed outcome, and unavailable validation. The analyzer finds tool failure, retry loop, and excessive path from the same content-minimized trace. A production scheduler can use this evidence to choose backoff, alternate data, or human review instead of immediately repeating the same unavailable calls.
+
+## Conclusion
+
+The capped outage provides direct hosted evidence for a proportionate intervention recommendation.
