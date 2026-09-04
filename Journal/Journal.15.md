@@ -16,7 +16,7 @@ The local experiments establish what the project can infer under controlled exec
 
 ## Result at this checkpoint
 
-The credential-free configuration check ran successfully. Docker is installed, but this machine has no `OPENAI_API_KEY` or `OTEL_EXPORTER_OTLP_ENDPOINT`, so no paid model call or external telemetry export was attempted.
+The credential-free configuration check ran successfully. Docker is installed, but the first credentialed attempt from the Mac’s standalone Python installation stopped at local TLS certificate verification before reaching the API. No model response or external telemetry export was recorded. The integration extra now includes `certifi` and keeps certificate verification enabled.
 
 The code path is ready for a credentialed run. The probe follows the official OpenAI API key and Responses API configuration described in the [OpenAI quickstart](https://platform.openai.com/docs/quickstart/make-your-first-api-request).
 

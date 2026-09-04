@@ -17,7 +17,10 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8,<9"]
-integration = ["opentelemetry-exporter-otlp>=1.30,<2"]
+integration = [
+  "certifi>=2024.8.30",
+  "opentelemetry-exporter-otlp>=1.30,<2",
+]
 
 [project.scripts]
 aol = "agent_observability_lab.cli:main"

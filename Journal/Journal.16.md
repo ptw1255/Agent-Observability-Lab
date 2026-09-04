@@ -14,17 +14,17 @@ The deterministic lane answered the controlled inference question. A real model 
 
 ## Result at this checkpoint
 
-No credentialed call has been made. The current machine has no hosted API key or OTLP endpoint configured.
+The API key was loaded successfully, but the first credentialed call stopped at local TLS certificate verification. The request did not reach the provider. A managed CA-bundle dependency was added to the integration extra; the probe still needs to be rerun after reinstalling that extra.
 
 ## Next step
 
-Configure credentials outside the repository, run the probe once, inspect the trace, and record whether the expected root/model relationship and usage fields are present.
+Install the integration extra, configure credentials outside the repository, rerun the probe, inspect the trace, and record whether the expected root/model relationship and usage fields are present.
 
 ## Work snapshot
 
 ```text
 configuration check -> passed
-hosted API call     -> waiting for OPENAI_API_KEY
+hosted API call     -> TLS CA bundle fixed; rerun required
 OTLP export         -> waiting for OTEL_EXPORTER_OTLP_ENDPOINT
 ```
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import ssl
 import time
 import urllib.error
 import urllib.request
@@ -79,7 +80,17 @@ def run_probe(output: Path, model: str | None = None) -> dict[str, object]:
                 },
             ) as span:
                 try:
-                    with urllib.request.urlopen(request, timeout=60) as response:
+                    try:
+                        import certifi
+                    except ImportError as error:
+                        raise RuntimeError(
+                            "Hosted integration requires the integration extra: "
+                            "pip install -e '.[integration]'"
+                        ) from error
+                    tls_context = ssl.create_default_context(cafile=certifi.where())
+                    with urllib.request.urlopen(
+                        request, timeout=60, context=tls_context
+                    ) as response:
                         body = json.loads(response.read().decode())
                 except urllib.error.HTTPError as error:
                     root.set_attribute("agent_observability_lab.task_outcome", "failed")
