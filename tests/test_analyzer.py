@@ -6,6 +6,7 @@ import pytest
 from agent_observability_lab.runtime import Condition, DeterministicAgent
 from agent_observability_lab.tasks import ComparisonTask, DocumentTask, InvoiceTask
 from agent_observability_lab.telemetry import TelemetrySession
+from opentelemetry.trace import SpanKind
 
 
 def test_analyzer_detects_tool_failure_from_telemetry(tmp_path):
@@ -102,3 +103,30 @@ def test_comparison_redundant_lookup_is_detected(tmp_path):
 
     finding_types = {item["type"] for item in analyze(output)[0]["findings"]}
     assert "candidate_redundant_tool_use" in finding_types
+
+
+def test_hosted_single_call_uses_shape_not_output_token_threshold(tmp_path):
+    output = tmp_path / "hosted.jsonl"
+    session = TelemetrySession(output)
+    try:
+        with session.tracer.start_as_current_span(
+            "invoke_agent hosted-probe",
+            attributes={"agent_observability_lab.runtime_lane": "hosted"},
+        ):
+            with session.tracer.start_as_current_span(
+                "chat hosted-model",
+                kind=SpanKind.CLIENT,
+                attributes={
+                    "gen_ai.provider.name": "openai",
+                    "gen_ai.usage.output_tokens": 511,
+                },
+            ):
+                pass
+    finally:
+        session.shutdown()
+
+    report = analyze(output)[0]
+    assert report["runtime_lane"] == "hosted"
+    assert "excessive_execution_path" not in {
+        item["type"] for item in report["findings"]
+    }

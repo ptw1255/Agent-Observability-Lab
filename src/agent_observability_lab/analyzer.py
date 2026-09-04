@@ -21,6 +21,19 @@ def analyze(path: Path) -> list[dict[str, object]]:
         spans.sort(key=lambda item: item["start_time_unix_nano"])
         tool_spans = [span for span in spans if span["name"].startswith("execute_tool ")]
         span_by_id = {span["span_id"]: span for span in spans}
+        root_span = next(
+            (span for span in spans if span.get("parent_span_id") is None), None
+        )
+        runtime_lane = (
+            root_span["attributes"].get("agent_observability_lab.runtime_lane")
+            if root_span
+            else None
+        )
+        if not runtime_lane and any(
+            span["attributes"].get("gen_ai.provider.name") == "openai"
+            for span in spans
+        ):
+            runtime_lane = "hosted"
         findings: list[dict[str, object]] = []
         error_tools = []
         for span in tool_spans:
@@ -82,12 +95,18 @@ def analyze(path: Path) -> list[dict[str, object]]:
             for span in spans
             if span["name"].startswith("chat ")
         )
-        if max_depth >= 6 or model_call_count >= 6 or total_output_tokens >= 300:
+        excessive_by_shape = max_depth >= 6 or model_call_count >= 6
+        excessive_by_tokens = runtime_lane != "hosted" and total_output_tokens >= 300
+        if excessive_by_shape or excessive_by_tokens:
             findings.append(
                 {
                     "type": "excessive_execution_path",
                     "span_id": spans[-1]["span_id"],
-                    "evidence": "depth, model calls, or output tokens exceeded the local envelope",
+                    "evidence": (
+                        "depth or model calls exceeded the local envelope"
+                        if runtime_lane == "hosted"
+                        else "depth, model calls, or output tokens exceeded the local envelope"
+                    ),
                 }
             )
 
@@ -110,9 +129,6 @@ def analyze(path: Path) -> list[dict[str, object]]:
             (float(span["end_time_unix_nano"]) - float(span["start_time_unix_nano"])) / 1_000_000
             for span in spans
         ) if spans else 0.0
-        root_span = next(
-            (span for span in spans if span.get("parent_span_id") is None), None
-        )
         attempt_numbers = [
             span["attributes"].get("agent_observability_lab.attempt_number")
             for span in tool_spans
@@ -121,6 +137,7 @@ def analyze(path: Path) -> list[dict[str, object]]:
         reports.append(
             {
                 "trace_id": trace_id,
+                "runtime_lane": runtime_lane,
                 "sequence": sequence,
                 "parent_edges": parent_edges,
                 "span_count": len(spans),

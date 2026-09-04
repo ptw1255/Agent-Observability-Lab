@@ -101,6 +101,13 @@ def run_probe(output: Path, model: str | None = None) -> dict[str, object]:
                     span.set_attribute("gen_ai.usage.input_tokens", usage["input_tokens"])
                 if "output_tokens" in usage:
                     span.set_attribute("gen_ai.usage.output_tokens", usage["output_tokens"])
+                reasoning_tokens = usage.get("output_tokens_details", {}).get(
+                    "reasoning_tokens"
+                )
+                if reasoning_tokens is not None:
+                    span.set_attribute(
+                        "agent_observability_lab.reasoning_tokens", reasoning_tokens
+                    )
                 if body.get("id"):
                     span.set_attribute("gen_ai.response.id", body["id"])
                 span.set_attribute(

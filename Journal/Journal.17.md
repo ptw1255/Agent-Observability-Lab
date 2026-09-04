@@ -1,8 +1,10 @@
 # Journal.17 — Hosted-lane detector calibration
 
-## What we will do
+## What we did
 
-Separate hosted model usage accounting from the deterministic excessive-path threshold. Preserve raw usage details, including reasoning-token subfields, while preventing a single hosted model call from being labeled excessive solely because its output-token count is high.
+We separated hosted usage accounting from the deterministic excessive-path threshold. The analyzer now identifies the runtime lane from the root span or the standard provider attribute. For the hosted lane, high output tokens remain a reported measurement but do not by themselves create `excessive_execution_path`.
+
+The hosted probe now records the provider’s reasoning-token subfield when it is present in future Responses API usage records. The captured trace predates that field addition, so its published JSONL preserves the original evidence.
 
 ## Concept to know
 
@@ -14,11 +16,13 @@ The first hosted trace validated the telemetry boundary and exposed a concrete f
 
 ## Result at this checkpoint
 
-Calibration has not been implemented. The current trace remains useful as a captured portability case, but its excessive-path finding should be treated as invalid for the hosted probe.
+The recalibrated analyzer reports no findings for the captured hosted trace. It retains the 33 input tokens, 511 output tokens, 8.8-second duration, one model call, and depth 1 as evidence for later cost analysis.
+
+The deterministic excessive-path tests still pass. Their deep, multi-call paths remain findings because the structural thresholds are unchanged.
 
 ## Next step
 
-Add a hosted probe-specific analysis rule or lane metadata, test it against the captured trace and deterministic excessive-path controls, and document which findings remain comparable across lanes.
+Capture a second hosted trace or a hosted tool-calling run, then compare field coverage and define a hosted cost baseline before introducing any hosted cost anomaly detector.
 
 ## Work snapshot
 
@@ -30,4 +34,4 @@ root span
    └─ reasoning tokens: 448
 ```
 
-The notable point is the mismatch between raw cost and path shape: high hosted output usage does not by itself prove an excessive execution path.
+The notable point is the mismatch between raw cost and path shape: high hosted output usage does not by itself prove an excessive execution path. The hosted trace has one model span and no repeated work.

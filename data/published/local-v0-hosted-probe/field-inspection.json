@@ -21,13 +21,7 @@
     ]
   },
   "duration_ms": 8801.311,
-  "findings": [
-    {
-      "evidence": "depth, model calls, or output tokens exceeded the local envelope",
-      "span_id": "6bce1b583ff18d47",
-      "type": "excessive_execution_path"
-    }
-  ],
+  "findings": [],
   "input_tokens": 33,
   "model_call_count": 1,
   "output_tokens": 511,
@@ -38,6 +32,7 @@
     }
   ],
   "root_status": "UNSET",
+  "runtime_lane": "hosted",
   "sequence": [
     "invoke_agent hosted-probe",
     "chat hosted-model"
