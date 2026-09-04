@@ -44,7 +44,7 @@ Comparing the same runs across these profiles will show what basic telemetry can
 
 The complete v0 protocol is in [EXPERIMENT_PLAN.md](EXPERIMENT_PLAN.md). The expected learning path, outcome interpretation, and concise variable definitions are in [LEARNING_GUIDE.md](LEARNING_GUIDE.md). Collection, provenance, storage, and project-memory rules are in [DATA_MANAGEMENT.md](DATA_MANAGEMENT.md).
 
-Progress is recorded as numbered checkpoints in the [Journal](Journal/). Start with [Journal.00](Journal/Journal.00.md); [Journal.21](Journal/Journal.21.md) records the hosted baseline-path oracle and score. Journal filenames use two-digit numbering so GitHub displays them in numerical order. New checkpoints continue as `Journal.N+1` with zero-padding.
+Progress is recorded as numbered checkpoints in the [Journal](Journal/). Start with [Journal.00](Journal/Journal.00.md); [Journal.22](Journal/Journal.22.md) records the controlled hosted calculator-failure adapter. Journal filenames use two-digit numbering so GitHub displays them in numerical order. New checkpoints continue as `Journal.N+1` with zero-padding.
 
 ## First-slice development
 
@@ -55,7 +55,7 @@ pytest -q
 
 The tests validate span export, parent topology, failure recording, and blind detection. They do not run the planned 75-run experiment.
 
-The current first slice has 33 passing tests, three task types, five execution conditions, evidence projections, scoring utilities, a complete 75-run local matrix, retry-feedback and safety comparisons, duplicate-suppression results, a calibrated hosted probe, a five-run hosted cost baseline, a hosted cost-envelope observation, a successful hosted tool trace, and a scored hosted baseline-path oracle. The next step is one controlled hosted tool failure.
+The current first slice has 34 passing tests, three task types, five execution conditions, evidence projections, scoring utilities, a complete 75-run local matrix, retry-feedback and safety comparisons, duplicate-suppression results, a calibrated hosted probe, a five-run hosted cost baseline, a hosted cost-envelope observation, a successful hosted tool trace, a scored hosted baseline-path oracle, and a tested controlled hosted-failure adapter. The next step is one controlled hosted tool failure run.
 
 ## References
 

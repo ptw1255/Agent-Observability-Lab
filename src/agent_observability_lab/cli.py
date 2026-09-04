@@ -97,12 +97,20 @@ def main() -> None:
     hosted_tools_parser.add_argument("--output", type=Path, required=True)
     hosted_tools_parser.add_argument("--model")
     hosted_tools_parser.add_argument("--max-turns", type=int, default=6)
+    hosted_tools_parser.add_argument(
+        "--fault-mode", choices=["none", "first_calculator_failure"], default="none"
+    )
 
     args = parser.parse_args()
     if args.command == "hosted-tools":
         print(
             json.dumps(
-                run_tool_probe(args.output, args.model, args.max_turns),
+                run_tool_probe(
+                    args.output,
+                    args.model,
+                    args.max_turns,
+                    args.fault_mode,
+                ),
                 indent=2,
                 sort_keys=True,
             )

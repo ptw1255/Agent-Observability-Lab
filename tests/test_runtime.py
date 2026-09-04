@@ -289,3 +289,58 @@ def test_hosted_tool_probe_records_model_to_tool_topology_without_network(
     assert {span["parent_span_id"] for span in tool_spans}.issubset(
         {span["span_id"] for span in model_spans}
     )
+
+
+def test_hosted_tool_probe_records_one_recoverable_calculator_failure(
+    tmp_path, monkeypatch
+):
+    lookup_calls = [
+        {
+            "type": "function_call",
+            "name": "lookup_option",
+            "call_id": f"call-{option}",
+            "arguments": json.dumps({"option_id": option}),
+        }
+        for option in ("option-a-v1", "option-b-v1")
+    ]
+    calculator_call = {
+        "type": "function_call",
+        "name": "calculate_lower_cost",
+        "call_id": "call-calculator",
+        "arguments": '{"option_a_total":130,"option_b_total":140}',
+    }
+    responses = iter(
+        [
+            {"id": "resp-1", "usage": {}, "output": lookup_calls},
+            {"id": "resp-2", "usage": {}, "output": [calculator_call]},
+            {"id": "resp-3", "usage": {}, "output": [calculator_call]},
+            {
+                "id": "resp-4",
+                "usage": {},
+                "output": [
+                    {
+                        "type": "message",
+                        "content": [{"type": "output_text", "text": "option-a-v1"}],
+                    }
+                ],
+            },
+        ]
+    )
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key-not-a-real-secret")
+    monkeypatch.setattr(hosted, "_tls_context", lambda: object())
+    monkeypatch.setattr(hosted, "_post_response", lambda *args: next(responses))
+
+    result = run_tool_probe(
+        tmp_path / "hosted-failure",
+        max_turns=8,
+        fault_mode="first_calculator_failure",
+    )
+
+    report = result["report"]
+    assert result["answer"] == "option-a-v1"
+    assert report["model_call_count"] == 4
+    assert report["tool_call_count"] == 4
+    assert report["error_count"] == 1
+    assert report["attempt_numbers"] == [1, 1, 1, 2]
+    assert {finding["type"] for finding in report["findings"]} == {"tool_failure"}
+    assert "first_calculator_failure" not in Path(result["trace_path"]).read_text()

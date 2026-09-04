@@ -165,6 +165,20 @@ def _execute_tool_call(
     raise ValueError(f"unsupported hosted tool: {name}")
 
 
+def _tool_metadata(task: ComparisonTask, name: str, arguments: dict[str, object]) -> tuple[str, str, str]:
+    """Resolve stable span identity before a local tool is attempted."""
+    if name == "lookup_option":
+        option_id = arguments.get("option_id")
+        if option_id not in {task.option_a_id, task.option_b_id}:
+            raise ValueError("lookup_option received an unsupported option_id")
+        return "local_lookup", f"comparison-{option_id}", str(option_id)
+    if name == "calculate_lower_cost":
+        float(arguments["option_a_total"])
+        float(arguments["option_b_total"])
+        return "calculator", "comparison-lower-cost", "comparison-totals"
+    raise ValueError(f"unsupported hosted tool: {name}")
+
+
 def _output_text(body: dict[str, object]) -> str | None:
     for item in body.get("output", []):
         if item.get("type") != "message":
@@ -396,7 +410,10 @@ def run_cost_probe(
 
 
 def run_tool_probe(
-    output_root: Path, model: str | None = None, max_turns: int = 6
+    output_root: Path,
+    model: str | None = None,
+    max_turns: int = 6,
+    fault_mode: str = "none",
 ) -> dict[str, object]:
     """Run one bounded hosted tool loop against read-only local fixtures.
 
@@ -405,6 +422,8 @@ def run_tool_probe(
     """
     if max_turns < 1:
         raise ValueError("max_turns must be at least 1")
+    if fault_mode not in {"none", "first_calculator_failure"}:
+        raise ValueError(f"unsupported hosted fault mode: {fault_mode}")
     api_key = os.environ.get("OPENAI_API_KEY")
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY is required; use the configuration check first")
@@ -414,6 +433,7 @@ def run_tool_probe(
     run_id = str(uuid.uuid4())
     trace_path = output_root / "raw-trace.jsonl"
     attempt_counts: dict[str, int] = {}
+    calculator_failed_once = False
     conversation_items: list[object] = [
         {
             "role": "user",
@@ -492,24 +512,9 @@ def run_tool_probe(
                             arguments = json.loads(str(call.get("arguments", "{}")))
                             if not isinstance(arguments, dict):
                                 raise ValueError("hosted function arguments must be an object")
-                            tool_name, logical_id, result, data_source = _execute_tool_call(
+                            tool_name, logical_id, data_source = _tool_metadata(
                                 task, name, arguments
                             )
-                            attempt_counts[logical_id] = attempt_counts.get(logical_id, 0) + 1
-                            with session.tracer.start_as_current_span(
-                                f"execute_tool {tool_name}",
-                                kind=SpanKind.INTERNAL,
-                                attributes={
-                                    "gen_ai.operation.name": "execute_tool",
-                                    "gen_ai.tool.name": tool_name,
-                                    "gen_ai.data_source.id": data_source,
-                                    "agent_observability_lab.run_id": run_id,
-                                    "agent_observability_lab.logical_operation_id": logical_id,
-                                    "agent_observability_lab.attempt_number": attempt_counts[logical_id],
-                                    "agent_observability_lab.argument_fingerprint": _fingerprint(arguments),
-                                },
-                            ):
-                                pass
                         except (ValueError, KeyError, TypeError, json.JSONDecodeError) as error:
                             with session.tracer.start_as_current_span(
                                 "execute_tool rejected_tool_call",
@@ -524,6 +529,40 @@ def run_tool_probe(
                                 tool_span.set_status(Status(StatusCode.ERROR, str(error)))
                                 tool_span.set_attribute("error.type", "invalid_tool_call")
                             result = {"error": str(error)}
+                        else:
+                            attempt_counts[logical_id] = attempt_counts.get(logical_id, 0) + 1
+                            with session.tracer.start_as_current_span(
+                                f"execute_tool {tool_name}",
+                                kind=SpanKind.INTERNAL,
+                                attributes={
+                                    "gen_ai.operation.name": "execute_tool",
+                                    "gen_ai.tool.name": tool_name,
+                                    "gen_ai.data_source.id": data_source,
+                                    "agent_observability_lab.run_id": run_id,
+                                    "agent_observability_lab.logical_operation_id": logical_id,
+                                    "agent_observability_lab.attempt_number": attempt_counts[logical_id],
+                                    "agent_observability_lab.argument_fingerprint": _fingerprint(arguments),
+                                },
+                            ) as tool_span:
+                                try:
+                                    if (
+                                        fault_mode == "first_calculator_failure"
+                                        and name == "calculate_lower_cost"
+                                        and not calculator_failed_once
+                                    ):
+                                        calculator_failed_once = True
+                                        raise RuntimeError("calculator unavailable")
+                                    _, _, result, _ = _execute_tool_call(task, name, arguments)
+                                except (RuntimeError, ValueError, KeyError, TypeError) as error:
+                                    tool_span.record_exception(error)
+                                    tool_span.set_status(Status(StatusCode.ERROR, str(error)))
+                                    tool_span.set_attribute("error.type", "tool_unavailable")
+                                    result = {
+                                        "error": {
+                                            "type": "tool_unavailable",
+                                            "message": str(error),
+                                        }
+                                    }
                         outputs.append(
                             {
                                 "type": "function_call_output",
@@ -562,6 +601,7 @@ def run_tool_probe(
         "model": model_name,
         "runtime_lane": "hosted",
         "task_id": task.task_id,
+        "fault_mode": fault_mode,
         "max_turns": max_turns,
         "answer": final_answer,
         "response_id": final_response_id,
