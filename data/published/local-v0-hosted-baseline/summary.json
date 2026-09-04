@@ -1,0 +1,270 @@
+{
+  "model": "gpt-5",
+  "runs": [
+    {
+      "repetition": 1,
+      "report": {
+        "attempt_numbers": [],
+        "duration_ms": 4148.826,
+        "error_count": 0,
+        "findings": [],
+        "input_tokens": 33,
+        "max_depth": 1,
+        "model_call_count": 1,
+        "output_tokens": 360,
+        "parent_edges": [
+          {
+            "child_index": 1,
+            "parent_index": 0
+          }
+        ],
+        "root_status": "UNSET",
+        "runtime_lane": "hosted",
+        "sequence": [
+          "invoke_agent hosted-probe",
+          "chat hosted-model"
+        ],
+        "span_count": 2,
+        "tool_call_count": 0,
+        "trace_id": "bf924b6a642115fcf819f4c6ac5abca7"
+      },
+      "result": {
+        "model": "gpt-5",
+        "response_id": "resp_007bf04322265f71016a9a19244f8c87d2a833e8547a25851a",
+        "run_id": "ee518cee-eaa7-4d34-85dc-1f36181cb5c7",
+        "runtime_lane": "hosted",
+        "trace_path": "data/published/local-v0-hosted-baseline/run-01/raw-trace.jsonl",
+        "usage": {
+          "input_tokens": 33,
+          "input_tokens_details": {
+            "cache_write_tokens": 0,
+            "cached_tokens": 0
+          },
+          "output_tokens": 360,
+          "output_tokens_details": {
+            "reasoning_tokens": 320
+          },
+          "total_tokens": 393
+        }
+      }
+    },
+    {
+      "repetition": 2,
+      "report": {
+        "attempt_numbers": [],
+        "duration_ms": 7389.196,
+        "error_count": 0,
+        "findings": [],
+        "input_tokens": 33,
+        "max_depth": 1,
+        "model_call_count": 1,
+        "output_tokens": 502,
+        "parent_edges": [
+          {
+            "child_index": 1,
+            "parent_index": 0
+          }
+        ],
+        "root_status": "UNSET",
+        "runtime_lane": "hosted",
+        "sequence": [
+          "invoke_agent hosted-probe",
+          "chat hosted-model"
+        ],
+        "span_count": 2,
+        "tool_call_count": 0,
+        "trace_id": "4dfb1052fa389f688eaca05552e54f9b"
+      },
+      "result": {
+        "model": "gpt-5",
+        "response_id": "resp_02ef2ee87c095820016a9a19287a9c87d2b5419d320c87d0b5",
+        "run_id": "795b036e-7c13-4bc5-9646-0db4c4726fa0",
+        "runtime_lane": "hosted",
+        "trace_path": "data/published/local-v0-hosted-baseline/run-02/raw-trace.jsonl",
+        "usage": {
+          "input_tokens": 33,
+          "input_tokens_details": {
+            "cache_write_tokens": 0,
+            "cached_tokens": 0
+          },
+          "output_tokens": 502,
+          "output_tokens_details": {
+            "reasoning_tokens": 448
+          },
+          "total_tokens": 535
+        }
+      }
+    },
+    {
+      "repetition": 3,
+      "report": {
+        "attempt_numbers": [],
+        "duration_ms": 5842.807,
+        "error_count": 0,
+        "findings": [],
+        "input_tokens": 33,
+        "max_depth": 1,
+        "model_call_count": 1,
+        "output_tokens": 428,
+        "parent_edges": [
+          {
+            "child_index": 1,
+            "parent_index": 0
+          }
+        ],
+        "root_status": "UNSET",
+        "runtime_lane": "hosted",
+        "sequence": [
+          "invoke_agent hosted-probe",
+          "chat hosted-model"
+        ],
+        "span_count": 2,
+        "tool_call_count": 0,
+        "trace_id": "389a39a7f7049fa28d2306fd395d7a34"
+      },
+      "result": {
+        "model": "gpt-5",
+        "response_id": "resp_05179f9a08381a9d016a9a192fdc9887d2a791f637f28af88d",
+        "run_id": "9030688b-2797-46b4-b6f9-dd833eebd3c2",
+        "runtime_lane": "hosted",
+        "trace_path": "data/published/local-v0-hosted-baseline/run-03/raw-trace.jsonl",
+        "usage": {
+          "input_tokens": 33,
+          "input_tokens_details": {
+            "cache_write_tokens": 0,
+            "cached_tokens": 0
+          },
+          "output_tokens": 428,
+          "output_tokens_details": {
+            "reasoning_tokens": 384
+          },
+          "total_tokens": 461
+        }
+      }
+    },
+    {
+      "repetition": 4,
+      "report": {
+        "attempt_numbers": [],
+        "duration_ms": 6391.327,
+        "error_count": 0,
+        "findings": [],
+        "input_tokens": 33,
+        "max_depth": 1,
+        "model_call_count": 1,
+        "output_tokens": 451,
+        "parent_edges": [
+          {
+            "child_index": 1,
+            "parent_index": 0
+          }
+        ],
+        "root_status": "UNSET",
+        "runtime_lane": "hosted",
+        "sequence": [
+          "invoke_agent hosted-probe",
+          "chat hosted-model"
+        ],
+        "span_count": 2,
+        "tool_call_count": 0,
+        "trace_id": "08899792978f5b32b5b5905f07ff71bf"
+      },
+      "result": {
+        "model": "gpt-5",
+        "response_id": "resp_00fae512f6b84205016a9a1936060087d280e12dcbbb924978",
+        "run_id": "8c73c9bb-e2f4-4f8b-bd06-879fb8a11d84",
+        "runtime_lane": "hosted",
+        "trace_path": "data/published/local-v0-hosted-baseline/run-04/raw-trace.jsonl",
+        "usage": {
+          "input_tokens": 33,
+          "input_tokens_details": {
+            "cache_write_tokens": 0,
+            "cached_tokens": 0
+          },
+          "output_tokens": 451,
+          "output_tokens_details": {
+            "reasoning_tokens": 384
+          },
+          "total_tokens": 484
+        }
+      }
+    },
+    {
+      "repetition": 5,
+      "report": {
+        "attempt_numbers": [],
+        "duration_ms": 6731.499,
+        "error_count": 0,
+        "findings": [],
+        "input_tokens": 33,
+        "max_depth": 1,
+        "model_call_count": 1,
+        "output_tokens": 504,
+        "parent_edges": [
+          {
+            "child_index": 1,
+            "parent_index": 0
+          }
+        ],
+        "root_status": "UNSET",
+        "runtime_lane": "hosted",
+        "sequence": [
+          "invoke_agent hosted-probe",
+          "chat hosted-model"
+        ],
+        "span_count": 2,
+        "tool_call_count": 0,
+        "trace_id": "d0f9d5775fe8578266aa30b202bbf579"
+      },
+      "result": {
+        "model": "gpt-5",
+        "response_id": "resp_026990cd0def6b1e016a9a193c19f487d28d46bec48a60158b",
+        "run_id": "bdc8a66b-d6d5-4f55-929a-f64db0baefce",
+        "runtime_lane": "hosted",
+        "trace_path": "data/published/local-v0-hosted-baseline/run-05/raw-trace.jsonl",
+        "usage": {
+          "input_tokens": 33,
+          "input_tokens_details": {
+            "cache_write_tokens": 0,
+            "cached_tokens": 0
+          },
+          "output_tokens": 504,
+          "output_tokens_details": {
+            "reasoning_tokens": 448
+          },
+          "total_tokens": 537
+        }
+      }
+    }
+  ],
+  "runtime_lane": "hosted",
+  "summary": {
+    "duration_ms": {
+      "max": 7389.196,
+      "mean": 6100.731,
+      "min": 4148.826
+    },
+    "finding_types": [],
+    "input_tokens": {
+      "max": 33.0,
+      "mean": 33.0,
+      "min": 33.0
+    },
+    "model_call_count": {
+      "max": 1.0,
+      "mean": 1.0,
+      "min": 1.0
+    },
+    "output_tokens": {
+      "max": 504.0,
+      "mean": 449.0,
+      "min": 360.0
+    },
+    "run_count": 5,
+    "span_count": {
+      "max": 2.0,
+      "mean": 2.0,
+      "min": 2.0
+    }
+  }
+}

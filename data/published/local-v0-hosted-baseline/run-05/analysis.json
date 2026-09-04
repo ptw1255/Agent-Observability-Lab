@@ -1,0 +1,25 @@
+{
+  "attempt_numbers": [],
+  "duration_ms": 6731.499,
+  "error_count": 0,
+  "findings": [],
+  "input_tokens": 33,
+  "max_depth": 1,
+  "model_call_count": 1,
+  "output_tokens": 504,
+  "parent_edges": [
+    {
+      "child_index": 1,
+      "parent_index": 0
+    }
+  ],
+  "root_status": "UNSET",
+  "runtime_lane": "hosted",
+  "sequence": [
+    "invoke_agent hosted-probe",
+    "chat hosted-model"
+  ],
+  "span_count": 2,
+  "tool_call_count": 0,
+  "trace_id": "d0f9d5775fe8578266aa30b202bbf579"
+}

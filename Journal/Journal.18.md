@@ -2,9 +2,9 @@
 
 ## What we did
 
-We added `aol hosted-baseline`, which runs a chosen number of hosted probes from one credentialed terminal session. It saves each raw trace and analysis, then writes a `summary.json` with minimum, mean, and maximum values for model calls, input tokens, output tokens, duration, and span count.
+We added `aol hosted-baseline`, then ran five hosted probes from one credentialed terminal session. Each run saved a raw trace and analysis. The command wrote a `summary.json` with minimum, mean, and maximum values for model calls, input tokens, output tokens, duration, and span count.
 
-No additional hosted calls were made while building this command. The key remains outside the repository and is required only when the command is run locally.
+The key remained in the terminal session. The published artifacts contain trace metadata and response IDs, not the API key or prompt text.
 
 ## Concept to know
 
@@ -16,18 +16,25 @@ Journal.17 fixed a concrete false positive. This checkpoint replaces the removed
 
 ## Result at this checkpoint
 
-The hosted baseline has not been collected. One successful hosted trace exists and validates the instrumentation contract; the new command makes the next collection repeatable.
+The five-run hosted baseline is complete. Every run had one root span, one hosted model span, depth 1, one model call, no tool calls, and no analyzer findings.
+
+Input tokens were constant at 33. Output tokens ranged from 360 to 504, with a mean of 449. Duration ranged from 4.1 to 7.4 seconds, with a mean of 6.1 seconds. The provider response metadata reported reasoning-token use on each run, which explains much of the output-token variation for this fixed prompt.
+
+This is a narrow baseline for one model, one prompt, and one runtime shape. It is enough to show that the earlier 300-token deterministic threshold would have created false positives for normal hosted calls.
 
 ## Next step
 
-Run five probes in the same configured terminal session, inspect the summary, and decide whether a hosted cost detector is justified.
+Define a hosted cost-envelope rule from this baseline, then test it on a deliberately more expensive hosted prompt before using it as a finding or feedback signal.
 
 ## Work snapshot
 
 ```text
-hosted trace 1 -> 1 model call, 511 output tokens, 8.8 seconds
-hosted trace N -> collect comparable measurements
-baseline       -> define a hosted cost envelope
+five hosted traces -> one model call and two spans each
+output tokens      -> 360 to 504; mean 449
+duration           -> 4.1 to 7.4 seconds; mean 6.1 seconds
+baseline           -> ready for a narrow cost-envelope experiment
 ```
 
-The notable question is whether variation comes from the model, the network, or the task. The trace records all three imperfectly, so the baseline must stay narrow.
+The notable result is stable execution shape with variable cost. The trace separates model-call count from token and latency variation, but it cannot fully separate provider reasoning behavior from network effects.
+
+Artifacts: [local-v0-hosted-baseline](../data/published/local-v0-hosted-baseline/).
