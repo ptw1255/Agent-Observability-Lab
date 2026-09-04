@@ -1,0 +1,47 @@
+{
+  "attribute_keys_by_span": {
+    "chat hosted-model": [
+      "agent_observability_lab.provider_latency_ms",
+      "agent_observability_lab.run_id",
+      "gen_ai.agent.name",
+      "gen_ai.operation.name",
+      "gen_ai.provider.name",
+      "gen_ai.request.model",
+      "gen_ai.response.id",
+      "gen_ai.usage.input_tokens",
+      "gen_ai.usage.output_tokens"
+    ],
+    "invoke_agent hosted-probe": [
+      "agent_observability_lab.run_id",
+      "agent_observability_lab.runtime_lane",
+      "agent_observability_lab.task_id",
+      "agent_observability_lab.task_outcome",
+      "gen_ai.agent.name",
+      "gen_ai.operation.name"
+    ]
+  },
+  "duration_ms": 8801.311,
+  "findings": [
+    {
+      "evidence": "depth, model calls, or output tokens exceeded the local envelope",
+      "span_id": "6bce1b583ff18d47",
+      "type": "excessive_execution_path"
+    }
+  ],
+  "input_tokens": 33,
+  "model_call_count": 1,
+  "output_tokens": 511,
+  "parent_edges": [
+    {
+      "child_index": 1,
+      "parent_index": 0
+    }
+  ],
+  "root_status": "UNSET",
+  "sequence": [
+    "invoke_agent hosted-probe",
+    "chat hosted-model"
+  ],
+  "span_count": 2,
+  "tool_call_count": 0
+}

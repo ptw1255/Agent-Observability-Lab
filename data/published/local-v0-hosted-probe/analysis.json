@@ -1,0 +1,32 @@
+[
+  {
+    "attempt_numbers": [],
+    "duration_ms": 8801.311,
+    "error_count": 0,
+    "findings": [
+      {
+        "evidence": "depth, model calls, or output tokens exceeded the local envelope",
+        "span_id": "6bce1b583ff18d47",
+        "type": "excessive_execution_path"
+      }
+    ],
+    "input_tokens": 33,
+    "max_depth": 1,
+    "model_call_count": 1,
+    "output_tokens": 511,
+    "parent_edges": [
+      {
+        "child_index": 1,
+        "parent_index": 0
+      }
+    ],
+    "root_status": "UNSET",
+    "sequence": [
+      "invoke_agent hosted-probe",
+      "chat hosted-model"
+    ],
+    "span_count": 2,
+    "tool_call_count": 0,
+    "trace_id": "bd4810fe742f948d4a0d5f440a71c89b"
+  }
+]

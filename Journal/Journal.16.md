@@ -1,8 +1,8 @@
 # Journal.16 — Credentialed hosted trace capture
 
-## What we will do
+## What we did
 
-Run the hosted portability probe with a configured API key and capture one successful response. If an OTLP endpoint is available, send the same spans to it while retaining the local JSONL export.
+We ran the hosted portability probe with a configured API key and captured one successful OpenAI Responses API call. The local JSONL export contains one root span and one child model span. No OTLP endpoint was configured, so the local export remained the only destination.
 
 ## Concept to know
 
@@ -14,18 +14,24 @@ The deterministic lane answered the controlled inference question. A real model 
 
 ## Result at this checkpoint
 
-The API key was loaded successfully, but the first credentialed call stopped at local TLS certificate verification. The request did not reach the provider. A managed CA-bundle dependency was added to the integration extra; the probe still needs to be rerun after reinstalling that extra.
+The API request succeeded. The trace contains the expected root/model relationship, model name, provider, response ID, input tokens, output tokens, provider latency, task outcome, and `UNSET` root status. The response reported 33 input tokens, 511 output tokens, and 448 reasoning tokens within the output usage details.
+
+The existing analyzer emitted `excessive_execution_path` because its local threshold treats output tokens of at least 300 as excessive. That finding is a portability false positive for this one-call hosted probe: the trace has one model call, depth 1, and no tool calls. The hosted result validates field capture while exposing a threshold that needs lane-specific calibration.
 
 ## Next step
 
-Install the integration extra, configure credentials outside the repository, rerun the probe, inspect the trace, and record whether the expected root/model relationship and usage fields are present.
+Calibrate the analyzer for hosted traces by separating model reasoning-token usage from the deterministic excessive-path rule, then decide whether a hosted trace needs a different oracle or a task evaluator before diagnosis scoring.
 
 ## Work snapshot
 
 ```text
 configuration check -> passed
-hosted API call     -> TLS CA bundle fixed; rerun required
+hosted API call     -> succeeded; 2 spans captured
+usage fields        -> present; 33 input / 511 output tokens
+analyzer            -> excessive-path false positive requires calibration
 OTLP export         -> waiting for OTEL_EXPORTER_OTLP_ENDPOINT
 ```
 
 The notable constraint is cost and privacy: the hosted lane remains opt-in and its credentials never belong in the repository.
+
+Artifacts: [local-v0-hosted-probe](../data/published/local-v0-hosted-probe/).
