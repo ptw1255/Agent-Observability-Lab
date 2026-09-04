@@ -189,6 +189,13 @@ def _output_text(body: dict[str, object]) -> str | None:
     return None
 
 
+def _validate_comparison_answer(answer: str | None, task: ComparisonTask) -> str:
+    """Emit a minimal task-level outcome without retaining model response text."""
+    if answer is None:
+        return "unavailable"
+    return "valid" if answer.strip() == task.expected_answer else "invalid"
+
+
 def run_probe(
     output: Path,
     model: str | None = None,
@@ -455,6 +462,7 @@ def run_tool_probe(
     )
     final_response_id: str | None = None
     final_answer: str | None = None
+    answer_validation = "unavailable"
     try:
         with session.tracer.start_as_current_span(
             "invoke_agent hosted-tool-agent",
@@ -499,6 +507,10 @@ def run_tool_probe(
                     ]
                     if not calls:
                         final_answer = _output_text(body)
+                        answer_validation = _validate_comparison_answer(final_answer, task)
+                        root.set_attribute(
+                            "agent_observability_lab.answer_validation", answer_validation
+                        )
                         root.set_attribute("agent_observability_lab.task_outcome", "success")
                         break
 
@@ -604,6 +616,7 @@ def run_tool_probe(
         "fault_mode": fault_mode,
         "max_turns": max_turns,
         "answer": final_answer,
+        "answer_validation": answer_validation,
         "response_id": final_response_id,
         "trace_path": str(trace_path),
         "analysis_path": str(output_root / "analysis.json"),

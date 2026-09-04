@@ -7,6 +7,7 @@ from agent_observability_lab.feedback import DuplicateSuppressionFeedback, Retry
 from agent_observability_lab.hosted import (
     _execute_tool_call,
     _tool_schemas,
+    _validate_comparison_answer,
     configuration,
     observe_cost_envelope,
     run_tool_probe,
@@ -216,6 +217,14 @@ def test_hosted_tools_are_read_only_and_use_versioned_fixture_inputs():
     assert result["lower_option_id"] == task.option_a_id
 
 
+def test_hosted_answer_validation_keeps_only_the_outcome_class():
+    task = ComparisonTask()
+
+    assert _validate_comparison_answer(task.expected_answer, task) == "valid"
+    assert _validate_comparison_answer("option-b-v1", task) == "invalid"
+    assert _validate_comparison_answer(None, task) == "unavailable"
+
+
 def test_hosted_tool_probe_records_model_to_tool_topology_without_network(
     tmp_path, monkeypatch
 ):
@@ -276,6 +285,7 @@ def test_hosted_tool_probe_records_model_to_tool_topology_without_network(
     result = run_tool_probe(tmp_path / "hosted-tools", max_turns=6)
 
     assert result["answer"] == "option-a-v1"
+    assert result["answer_validation"] == "valid"
     assert result["report"]["model_call_count"] == 3
     assert result["report"]["tool_call_count"] == 3
     assert result["report"]["findings"] == []
@@ -338,6 +348,7 @@ def test_hosted_tool_probe_records_one_recoverable_calculator_failure(
 
     report = result["report"]
     assert result["answer"] == "option-a-v1"
+    assert result["answer_validation"] == "valid"
     assert report["model_call_count"] == 4
     assert report["tool_call_count"] == 4
     assert report["error_count"] == 1

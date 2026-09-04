@@ -150,6 +150,16 @@ def analyze(path: Path) -> list[dict[str, object]]:
                 "error_count": len(error_tools),
                 "attempt_numbers": attempt_numbers,
                 "root_status": root_span["status"] if root_span else None,
+                "task_outcome": (
+                    root_span["attributes"].get("agent_observability_lab.task_outcome")
+                    if root_span
+                    else None
+                ),
+                "answer_validation": (
+                    root_span["attributes"].get("agent_observability_lab.answer_validation")
+                    if root_span
+                    else None
+                ),
                 "findings": findings,
             }
         )
