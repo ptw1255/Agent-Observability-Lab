@@ -1,8 +1,13 @@
 import json
+from pathlib import Path
 
 from agent_observability_lab.analyzer import analyze
 from agent_observability_lab.projections import EvidenceProfile, project_file
-from agent_observability_lab.oracle import build_baseline_oracle, build_oracle
+from agent_observability_lab.oracle import (
+    build_baseline_oracle,
+    build_hosted_tool_baseline_oracle,
+    build_oracle,
+)
 from agent_observability_lab.scoring import score_report
 from agent_observability_lab.runtime import Condition, DeterministicAgent
 from agent_observability_lab.tasks import ComparisonTask, InvoiceTask
@@ -155,3 +160,18 @@ def test_excessive_path_oracle_captures_depth_and_cost(tmp_path):
     assert oracle["expected_output_tokens"] == 360
     assert len(oracle["expected_parent_edges"]) == 13
     assert {"parent_index": 2, "child_index": 4} in oracle["expected_parent_edges"]
+
+
+def test_hosted_tool_oracle_scores_the_published_baseline_trace():
+    root = Path(__file__).resolve().parents[1]
+    trace = root / "data/published/local-v0-hosted-tool-probe-attempt-02/raw-trace.jsonl"
+    report = analyze(trace)[0]
+    oracle = build_hosted_tool_baseline_oracle(trace)
+    score = score_report(report, oracle)
+
+    assert oracle["runtime_lane"] == "hosted"
+    assert score["sequence_exact"] is True
+    assert score["topology_edge_f1"] == 1.0
+    assert all(score["resource_matches"].values())
+    assert score["attempt_sequence_match"] is True
+    assert score["runtime_lane_match"] is True

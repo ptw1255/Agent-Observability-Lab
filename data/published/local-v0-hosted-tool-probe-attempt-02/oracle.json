@@ -1,0 +1,52 @@
+{
+  "condition": "baseline",
+  "expected_attempt_numbers": [
+    1,
+    1,
+    1
+  ],
+  "expected_findings": [],
+  "expected_max_depth": 2,
+  "expected_model_call_count": 3,
+  "expected_parent_edges": [
+    {
+      "child_index": 1,
+      "parent_index": 0
+    },
+    {
+      "child_index": 2,
+      "parent_index": 1
+    },
+    {
+      "child_index": 3,
+      "parent_index": 1
+    },
+    {
+      "child_index": 4,
+      "parent_index": 0
+    },
+    {
+      "child_index": 5,
+      "parent_index": 4
+    },
+    {
+      "child_index": 6,
+      "parent_index": 0
+    }
+  ],
+  "expected_root_status": "UNSET",
+  "expected_sequence": [
+    "invoke_agent hosted-tool-agent",
+    "chat hosted-model",
+    "execute_tool local_lookup",
+    "execute_tool local_lookup",
+    "chat hosted-model",
+    "execute_tool calculator",
+    "chat hosted-model"
+  ],
+  "expected_tool_call_count": 3,
+  "run_id": "5f0896d7-b3bd-4d3e-b511-fd17f9a47028",
+  "runtime_lane": "hosted",
+  "task_id": "two-option-comparison-v1",
+  "trace_id": "5da9d05d38849bae13a1ded6d597d524"
+}

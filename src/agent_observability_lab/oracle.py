@@ -142,6 +142,25 @@ EXCESSIVE_INVOICE_EDGES = [
     {"parent_index": 0, "child_index": 13},
 ]
 
+HOSTED_TOOL_BASELINE_SEQUENCE = [
+    "invoke_agent hosted-tool-agent",
+    "chat hosted-model",
+    "execute_tool local_lookup",
+    "execute_tool local_lookup",
+    "chat hosted-model",
+    "execute_tool calculator",
+    "chat hosted-model",
+]
+
+HOSTED_TOOL_BASELINE_EDGES = [
+    {"parent_index": 0, "child_index": 1},
+    {"parent_index": 1, "child_index": 2},
+    {"parent_index": 1, "child_index": 3},
+    {"parent_index": 0, "child_index": 4},
+    {"parent_index": 4, "child_index": 5},
+    {"parent_index": 0, "child_index": 6},
+]
+
 
 def _root_edges(sequence: list[str]) -> list[dict[str, int]]:
     return [
@@ -279,3 +298,46 @@ def build_oracle(trace_path: Path, task_id: str, condition: str) -> dict[str, ob
 
 def build_baseline_oracle(trace_path: Path, task_id: str) -> dict[str, object]:
     return build_oracle(trace_path, task_id, "baseline")
+
+
+def build_hosted_tool_baseline_oracle(trace_path: Path) -> dict[str, object]:
+    """Seal the known expected topology for the bounded hosted tool task.
+
+    Unlike the deterministic oracle, this deliberately avoids exact token and
+    latency expectations: those values are variable for a hosted model. The
+    oracle asserts only the task's intended observable structure and outcome.
+    """
+    records = [
+        json.loads(line)
+        for line in trace_path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    trace_ids = {record["trace_id"] for record in records}
+    if len(trace_ids) != 1:
+        raise ValueError("hosted oracle builder expects exactly one trace")
+    root = next((record for record in records if record.get("parent_span_id") is None), None)
+    if not root:
+        raise ValueError("hosted oracle builder requires a root span")
+    attributes = root.get("attributes", {})
+    if attributes.get("agent_observability_lab.runtime_lane") != "hosted":
+        raise ValueError("hosted oracle builder requires a hosted trace")
+    if attributes.get("agent_observability_lab.task_id") != "two-option-comparison-v1":
+        raise ValueError("hosted oracle builder requires the comparison task")
+    run_id = attributes.get("agent_observability_lab.run_id")
+    if not run_id:
+        raise ValueError("hosted oracle builder requires an opaque run ID")
+    return {
+        "trace_id": next(iter(trace_ids)),
+        "run_id": run_id,
+        "task_id": "two-option-comparison-v1",
+        "runtime_lane": "hosted",
+        "condition": "baseline",
+        "expected_sequence": HOSTED_TOOL_BASELINE_SEQUENCE,
+        "expected_parent_edges": HOSTED_TOOL_BASELINE_EDGES,
+        "expected_findings": [],
+        "expected_root_status": "UNSET",
+        "expected_attempt_numbers": [1, 1, 1],
+        "expected_model_call_count": 3,
+        "expected_tool_call_count": 3,
+        "expected_max_depth": 2,
+    }

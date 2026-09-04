@@ -11,7 +11,7 @@ from .analyzer import analyze
 from .feedback import DuplicateSuppressionFeedback, RetryBudgetFeedback
 from .hosted import configuration, run_baseline, run_cost_probe, run_probe, run_tool_probe
 from .projections import EvidenceProfile, project_file
-from .oracle import build_oracle
+from .oracle import build_hosted_tool_baseline_oracle, build_oracle
 from .matrix import run_matrix
 from .runtime import Condition, DeterministicAgent
 from .scoring import score_reports
@@ -61,6 +61,12 @@ def main() -> None:
     oracle_parser.add_argument("--task", required=True)
     oracle_parser.add_argument("--condition", default="baseline")
     oracle_parser.add_argument("--output", type=Path, required=True)
+
+    hosted_oracle_parser = subparsers.add_parser(
+        "hosted-oracle", help="build the compact oracle for a hosted tool baseline"
+    )
+    hosted_oracle_parser.add_argument("--input", type=Path, required=True)
+    hosted_oracle_parser.add_argument("--output", type=Path, required=True)
 
     matrix_parser = subparsers.add_parser("matrix", help="run the deterministic experiment matrix")
     matrix_parser.add_argument("--output", type=Path, required=True)
@@ -165,6 +171,10 @@ def main() -> None:
             args.output.write_text(rendered + "\n", encoding="utf-8")
         else:
             print(rendered)
+    elif args.command == "hosted-oracle":
+        oracle = build_hosted_tool_baseline_oracle(args.input)
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(json.dumps(oracle, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     elif args.command == "oracle":
         oracle = build_oracle(args.input, args.task, args.condition)
         args.output.parent.mkdir(parents=True, exist_ok=True)

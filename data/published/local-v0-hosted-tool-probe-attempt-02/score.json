@@ -1,0 +1,25 @@
+[
+  {
+    "attempt_sequence_match": true,
+    "findings": {
+      "expected": [],
+      "precision": 1.0,
+      "predicted": [],
+      "recall": 1.0
+    },
+    "resource_matches": {
+      "max_depth": true,
+      "model_call_count": true,
+      "tool_call_count": true
+    },
+    "root_status_match": true,
+    "runtime_lane_match": true,
+    "sequence_exact": true,
+    "sequence_length": {
+      "expected": 7,
+      "predicted": 7
+    },
+    "topology_edge_f1": 1.0,
+    "trace_id": "5da9d05d38849bae13a1ded6d597d524"
+  }
+]
