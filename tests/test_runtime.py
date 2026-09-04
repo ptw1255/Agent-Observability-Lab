@@ -2,7 +2,7 @@ import json
 
 from agent_observability_lab.runtime import Condition, DeterministicAgent
 from agent_observability_lab.feedback import DuplicateSuppressionFeedback, RetryBudgetFeedback
-from agent_observability_lab.hosted import configuration
+from agent_observability_lab.hosted import configuration, summarize_reports
 from agent_observability_lab.tasks import ComparisonTask, DocumentTask, InvoiceTask
 from agent_observability_lab.telemetry import TelemetrySession
 
@@ -139,3 +139,29 @@ def test_hosted_configuration_is_safe_without_credentials(monkeypatch):
     assert config["api_key_configured"] is False
     assert config["model"] == "gpt-5"
     assert config["otlp_endpoint_configured"] is False
+
+
+def test_hosted_baseline_summary_reports_cost_distribution():
+    summary = summarize_reports(
+        [
+            {
+                "model_call_count": 1,
+                "input_tokens": 30,
+                "output_tokens": 500,
+                "duration_ms": 8000.0,
+                "span_count": 2,
+                "findings": [],
+            },
+            {
+                "model_call_count": 1,
+                "input_tokens": 32,
+                "output_tokens": 520,
+                "duration_ms": 9000.0,
+                "span_count": 2,
+                "findings": [],
+            },
+        ]
+    )
+    assert summary["run_count"] == 2
+    assert summary["output_tokens"]["mean"] == 510.0
+    assert summary["duration_ms"]["max"] == 9000.0

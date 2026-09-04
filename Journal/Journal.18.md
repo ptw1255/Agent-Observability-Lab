@@ -1,8 +1,10 @@
 # Journal.18 — Hosted cost baseline and trace coverage
 
-## What we will do
+## What we did
 
-Capture a small set of hosted probe runs and compare their model usage, latency, span shape, and provider fields. Use the resulting distribution to define a hosted cost baseline without borrowing deterministic token thresholds.
+We added `aol hosted-baseline`, which runs a chosen number of hosted probes from one credentialed terminal session. It saves each raw trace and analysis, then writes a `summary.json` with minimum, mean, and maximum values for model calls, input tokens, output tokens, duration, and span count.
+
+No additional hosted calls were made while building this command. The key remains outside the repository and is required only when the command is run locally.
 
 ## Concept to know
 
@@ -14,11 +16,11 @@ Journal.17 fixed a concrete false positive. This checkpoint replaces the removed
 
 ## Result at this checkpoint
 
-The hosted baseline has not been collected. One successful hosted trace exists and validates the instrumentation contract.
+The hosted baseline has not been collected. One successful hosted trace exists and validates the instrumentation contract; the new command makes the next collection repeatable.
 
 ## Next step
 
-Run several probes in the same configured terminal session, summarize field coverage and variation, and decide whether a hosted cost detector is justified.
+Run five probes in the same configured terminal session, inspect the summary, and decide whether a hosted cost detector is justified.
 
 ## Work snapshot
 

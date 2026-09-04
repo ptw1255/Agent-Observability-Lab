@@ -9,10 +9,12 @@ import time
 import urllib.error
 import urllib.request
 import uuid
+from statistics import mean
 from pathlib import Path
 
 from opentelemetry.trace import SpanKind
 
+from .analyzer import analyze
 from .telemetry import TelemetrySession
 
 
@@ -125,3 +127,63 @@ def run_probe(output: Path, model: str | None = None) -> dict[str, object]:
         "response_id": body.get("id"),
         "usage": body.get("usage", {}),
     }
+
+
+def summarize_reports(reports: list[dict[str, object]]) -> dict[str, object]:
+    """Summarize a narrow set of comparable hosted traces."""
+    if not reports:
+        raise ValueError("at least one hosted report is required")
+
+    def distribution(field: str) -> dict[str, float]:
+        values = [float(report[field]) for report in reports]
+        return {
+            "min": round(min(values), 3),
+            "mean": round(mean(values), 3),
+            "max": round(max(values), 3),
+        }
+
+    return {
+        "run_count": len(reports),
+        "model_call_count": distribution("model_call_count"),
+        "input_tokens": distribution("input_tokens"),
+        "output_tokens": distribution("output_tokens"),
+        "duration_ms": distribution("duration_ms"),
+        "span_count": distribution("span_count"),
+        "finding_types": sorted(
+            {
+                finding["type"]
+                for report in reports
+                for finding in report["findings"]
+            }
+        ),
+    }
+
+
+def run_baseline(
+    output_root: Path, repetitions: int = 5, model: str | None = None
+) -> dict[str, object]:
+    """Run comparable hosted probes and write a local cost-baseline summary."""
+    if repetitions < 1:
+        raise ValueError("repetitions must be at least 1")
+    runs: list[dict[str, object]] = []
+    reports: list[dict[str, object]] = []
+    for repetition in range(1, repetitions + 1):
+        run_root = output_root / f"run-{repetition:02d}"
+        result = run_probe(run_root / "raw-trace.jsonl", model)
+        report = analyze(run_root / "raw-trace.jsonl")[0]
+        (run_root / "analysis.json").write_text(
+            json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
+        runs.append({"repetition": repetition, "result": result, "report": report})
+        reports.append(report)
+    summary = {
+        "model": model or os.environ.get("AOL_HOSTED_MODEL", "gpt-5"),
+        "runtime_lane": "hosted",
+        "summary": summarize_reports(reports),
+        "runs": runs,
+    }
+    output_root.mkdir(parents=True, exist_ok=True)
+    (output_root / "summary.json").write_text(
+        json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    return summary
