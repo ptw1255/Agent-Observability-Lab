@@ -5,6 +5,50 @@ from __future__ import annotations
 from collections import defaultdict
 
 
+def outcome_aware_tool_failure_decision(report: dict[str, object]) -> dict[str, object]:
+    """Recommend a post-run action from telemetry and a minimal outcome class.
+
+    This policy intentionally consumes only analyzer output. It does not read
+    prompts, model text, injected-condition labels, or business-logic internals.
+    Because validation is available only after the run, this recommends action
+    for a subsequent attempt or human workflow; it does not rewrite history.
+    """
+    finding_types = {str(finding["type"]) for finding in report.get("findings", [])}
+    validation = report.get("answer_validation")
+    tool_failure = "tool_failure" in finding_types
+    evidence = {
+        "tool_failure": tool_failure,
+        "answer_validation": validation,
+    }
+    if not tool_failure:
+        return {
+            "type": "outcome_aware_tool_failure_decision",
+            "action": "no_action",
+            "evidence": evidence,
+            "rationale": "no failed tool boundary was observed",
+        }
+    if validation == "valid":
+        return {
+            "type": "outcome_aware_tool_failure_decision",
+            "action": "observe_only",
+            "evidence": evidence,
+            "rationale": "the task outcome validated despite the tool failure",
+        }
+    if validation in {"invalid", "unavailable"}:
+        return {
+            "type": "outcome_aware_tool_failure_decision",
+            "action": "intervene_on_next_attempt",
+            "evidence": evidence,
+            "rationale": "a tool failure coincided with an unvalidated task outcome",
+        }
+    return {
+        "type": "outcome_aware_tool_failure_decision",
+        "action": "insufficient_evidence",
+        "evidence": evidence,
+        "rationale": "the trace lacks a recognized task-outcome validation class",
+    }
+
+
 class RetryBudgetFeedback:
     """Stop a retry loop after repeated failures of one logical operation."""
 

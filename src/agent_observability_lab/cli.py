@@ -8,7 +8,11 @@ import uuid
 from pathlib import Path
 
 from .analyzer import analyze
-from .feedback import DuplicateSuppressionFeedback, RetryBudgetFeedback
+from .feedback import (
+    DuplicateSuppressionFeedback,
+    RetryBudgetFeedback,
+    outcome_aware_tool_failure_decision,
+)
 from .hosted import configuration, run_baseline, run_cost_probe, run_probe, run_tool_probe
 from .projections import EvidenceProfile, project_file
 from .oracle import (
@@ -59,6 +63,12 @@ def main() -> None:
     score_parser.add_argument("--analysis", type=Path, required=True)
     score_parser.add_argument("--oracle", type=Path, required=True)
     score_parser.add_argument("--output", type=Path)
+
+    feedback_parser = subparsers.add_parser(
+        "feedback-decision", help="recommend a post-run action from telemetry evidence"
+    )
+    feedback_parser.add_argument("--analysis", type=Path, required=True)
+    feedback_parser.add_argument("--output", type=Path)
 
     oracle_parser = subparsers.add_parser("oracle", help="build one sealed baseline oracle")
     oracle_parser.add_argument("--input", type=Path, required=True)
@@ -181,6 +191,20 @@ def main() -> None:
             oracle = [oracle]
         result = score_reports(analysis, oracle)
         rendered = json.dumps(result, indent=2, sort_keys=True)
+        if args.output:
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            args.output.write_text(rendered + "\n", encoding="utf-8")
+        else:
+            print(rendered)
+    elif args.command == "feedback-decision":
+        report = json.loads(args.analysis.read_text(encoding="utf-8"))
+        if isinstance(report, list):
+            if len(report) != 1:
+                raise ValueError("feedback decision expects exactly one analysis report")
+            report = report[0]
+        rendered = json.dumps(
+            outcome_aware_tool_failure_decision(report), indent=2, sort_keys=True
+        )
         if args.output:
             args.output.parent.mkdir(parents=True, exist_ok=True)
             args.output.write_text(rendered + "\n", encoding="utf-8")
