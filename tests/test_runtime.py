@@ -3,7 +3,11 @@ from pathlib import Path
 
 import agent_observability_lab.hosted as hosted
 from agent_observability_lab.runtime import Condition, DeterministicAgent
-from agent_observability_lab.feedback import DuplicateSuppressionFeedback, RetryBudgetFeedback
+from agent_observability_lab.feedback import (
+    DuplicateSuppressionFeedback,
+    RetryBudgetFeedback,
+    outcome_aware_tool_failure_decision,
+)
 from agent_observability_lab.hosted import (
     _execute_tool_call,
     _tool_schemas,
@@ -355,3 +359,52 @@ def test_hosted_tool_probe_records_one_recoverable_calculator_failure(
     assert report["attempt_numbers"] == [1, 1, 1, 2]
     assert {finding["type"] for finding in report["findings"]} == {"tool_failure"}
     assert "first_calculator_failure" not in Path(result["trace_path"]).read_text()
+
+
+def test_hosted_tool_probe_exposes_unvalidated_outcome_after_lookup_outage(
+    tmp_path, monkeypatch
+):
+    lookup_calls = [
+        {
+            "type": "function_call",
+            "name": "lookup_option",
+            "call_id": f"call-{option}",
+            "arguments": json.dumps({"option_id": option}),
+        }
+        for option in ("option-a-v1", "option-b-v1")
+    ]
+    responses = iter(
+        [
+            {"id": "resp-1", "usage": {}, "output": lookup_calls},
+            {
+                "id": "resp-2",
+                "usage": {},
+                "output": [
+                    {
+                        "type": "message",
+                        "content": [
+                            {"type": "output_text", "text": "unable to determine"}
+                        ],
+                    }
+                ],
+            },
+        ]
+    )
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key-not-a-real-secret")
+    monkeypatch.setattr(hosted, "_tls_context", lambda: object())
+    monkeypatch.setattr(hosted, "_post_response", lambda *args: next(responses))
+
+    result = run_tool_probe(
+        tmp_path / "hosted-lookup-outage",
+        max_turns=6,
+        fault_mode="all_option_lookups_unavailable",
+    )
+
+    assert result["answer_validation"] == "invalid"
+    assert result["report"]["error_count"] == 2
+    assert outcome_aware_tool_failure_decision(result["report"])["action"] == (
+        "intervene_on_next_attempt"
+    )
+    assert "all_option_lookups_unavailable" not in Path(
+        result["trace_path"]
+    ).read_text()

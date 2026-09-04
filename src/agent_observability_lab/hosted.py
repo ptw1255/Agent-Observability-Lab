@@ -429,7 +429,11 @@ def run_tool_probe(
     """
     if max_turns < 1:
         raise ValueError("max_turns must be at least 1")
-    if fault_mode not in {"none", "first_calculator_failure"}:
+    if fault_mode not in {
+        "none",
+        "first_calculator_failure",
+        "all_option_lookups_unavailable",
+    }:
         raise ValueError(f"unsupported hosted fault mode: {fault_mode}")
     api_key = os.environ.get("OPENAI_API_KEY")
     if not api_key:
@@ -564,6 +568,11 @@ def run_tool_probe(
                                     ):
                                         calculator_failed_once = True
                                         raise RuntimeError("calculator unavailable")
+                                    if (
+                                        fault_mode == "all_option_lookups_unavailable"
+                                        and name == "lookup_option"
+                                    ):
+                                        raise RuntimeError("option lookup unavailable")
                                     _, _, result, _ = _execute_tool_call(task, name, arguments)
                                 except (RuntimeError, ValueError, KeyError, TypeError) as error:
                                     tool_span.record_exception(error)

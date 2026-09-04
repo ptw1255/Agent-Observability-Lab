@@ -121,7 +121,13 @@ def main() -> None:
     hosted_tools_parser.add_argument("--model")
     hosted_tools_parser.add_argument("--max-turns", type=int, default=6)
     hosted_tools_parser.add_argument(
-        "--fault-mode", choices=["none", "first_calculator_failure"], default="none"
+        "--fault-mode",
+        choices=[
+            "none",
+            "first_calculator_failure",
+            "all_option_lookups_unavailable",
+        ],
+        default="none",
     )
 
     args = parser.parse_args()
