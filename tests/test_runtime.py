@@ -2,7 +2,11 @@ import json
 
 from agent_observability_lab.runtime import Condition, DeterministicAgent
 from agent_observability_lab.feedback import DuplicateSuppressionFeedback, RetryBudgetFeedback
-from agent_observability_lab.hosted import configuration, summarize_reports
+from agent_observability_lab.hosted import (
+    configuration,
+    observe_cost_envelope,
+    summarize_reports,
+)
 from agent_observability_lab.tasks import ComparisonTask, DocumentTask, InvoiceTask
 from agent_observability_lab.telemetry import TelemetrySession
 
@@ -165,3 +169,18 @@ def test_hosted_baseline_summary_reports_cost_distribution():
     assert summary["run_count"] == 2
     assert summary["output_tokens"]["mean"] == 510.0
     assert summary["duration_ms"]["max"] == 9000.0
+
+
+def test_cost_envelope_is_separate_from_execution_path_findings():
+    baseline = {
+        "summary": {
+            "run_count": 5,
+            "output_tokens": {"max": 500.0},
+            "duration_ms": {"max": 8000.0},
+        }
+    }
+    observation = observe_cost_envelope(
+        {"output_tokens": 700, "duration_ms": 7500}, baseline
+    )
+    assert observation["exceeded"] is True
+    assert observation["exceeded_metrics"] == ["output_tokens"]

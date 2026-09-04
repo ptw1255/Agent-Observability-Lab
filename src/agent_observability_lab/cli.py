@@ -9,7 +9,7 @@ from pathlib import Path
 
 from .analyzer import analyze
 from .feedback import DuplicateSuppressionFeedback, RetryBudgetFeedback
-from .hosted import configuration, run_baseline, run_probe
+from .hosted import configuration, run_baseline, run_cost_probe, run_probe
 from .projections import EvidenceProfile, project_file
 from .oracle import build_oracle
 from .matrix import run_matrix
@@ -78,8 +78,23 @@ def main() -> None:
     hosted_baseline_parser.add_argument("--repetitions", type=int, default=5)
     hosted_baseline_parser.add_argument("--model")
 
+    hosted_cost_parser = subparsers.add_parser(
+        "hosted-cost-probe", help="run one higher-effort hosted cost observation"
+    )
+    hosted_cost_parser.add_argument("--output", type=Path, required=True)
+    hosted_cost_parser.add_argument("--baseline", type=Path, required=True)
+    hosted_cost_parser.add_argument("--model")
+
     args = parser.parse_args()
-    if args.command == "hosted-baseline":
+    if args.command == "hosted-cost-probe":
+        print(
+            json.dumps(
+                run_cost_probe(args.output, args.baseline, args.model),
+                indent=2,
+                sort_keys=True,
+            )
+        )
+    elif args.command == "hosted-baseline":
         print(
             json.dumps(
                 run_baseline(args.output, args.repetitions, args.model),

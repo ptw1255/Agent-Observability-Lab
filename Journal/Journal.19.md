@@ -1,8 +1,10 @@
 # Journal.19 — Hosted cost-envelope experiment
 
-## What we will do
+## What we did
 
-Define a narrow hosted cost-envelope rule from the five-run baseline, then run one deliberately more expensive hosted prompt. Compare output tokens, reasoning-token usage, duration, and execution shape against the baseline without treating a normal one-call response as an execution-path failure.
+We added `aol hosted-cost-probe`. It makes one higher-effort hosted request, captures the trace, and compares output tokens and duration with the saved five-run baseline using a 1.25× envelope. The result is written as `hosted_cost_envelope`, separate from analyzer findings.
+
+The cost-stress request asks for five taxed invoice totals and a JSON result with `high` reasoning effort. It is intentionally one model call, so any envelope exceedance remains a cost observation instead of an execution-path diagnosis.
 
 ## Concept to know
 
@@ -14,11 +16,11 @@ The hosted baseline shows that a one-call model response naturally uses more tha
 
 ## Result at this checkpoint
 
-The hosted cost-envelope rule has not been implemented or tested.
+The rule and one-call probe are implemented but have not been run. Running it requires the same credentialed terminal session and incurs one API call.
 
 ## Next step
 
-Choose a conservative envelope, capture one higher-effort hosted prompt, and report the result as a cost observation rather than a reasoning-path conclusion.
+Run the one-call probe, inspect the cost observation, and report whether it exceeds the baseline envelope without calling it an inefficient path.
 
 ## Work snapshot
 

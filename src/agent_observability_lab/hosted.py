@@ -29,7 +29,28 @@ def configuration() -> dict[str, object]:
     }
 
 
-def run_probe(output: Path, model: str | None = None) -> dict[str, object]:
+def _prompt(scenario: str) -> str:
+    if scenario == "cost-stress":
+        return (
+            "For each invoice below, calculate the total after tax, identify the "
+            "highest total, and return a JSON object with five totals and the highest "
+            "invoice ID. Verify the arithmetic before responding. "
+            "A: 3 units at $19.95, 8% tax. B: 7 units at $12.40, 6.5% tax. "
+            "C: 14 units at $8.75, 9.25% tax. D: 5 units at $31.60, 7.75% tax. "
+            "E: 11 units at $16.20, 5% tax."
+        )
+    return (
+        "Calculate the invoice total for 3 units at $19.95 with an 8% tax rate. "
+        "Return only the numeric total."
+    )
+
+
+def run_probe(
+    output: Path,
+    model: str | None = None,
+    scenario: str = "baseline",
+    reasoning_effort: str | None = None,
+) -> dict[str, object]:
     """Make one hosted request and record the reusable telemetry boundary."""
     api_key = os.environ.get("OPENAI_API_KEY")
     if not api_key:
@@ -39,11 +60,14 @@ def run_probe(output: Path, model: str | None = None) -> dict[str, object]:
         "AOL_HOSTED_ENDPOINT", "https://api.openai.com/v1/responses"
     )
     run_id = str(uuid.uuid4())
-    prompt = (
-        "Calculate the invoice total for 3 units at $19.95 with an 8% tax rate. "
-        "Return only the numeric total."
-    )
-    payload = json.dumps({"model": model_name, "input": prompt, "store": False}).encode()
+    payload_body: dict[str, object] = {
+        "model": model_name,
+        "input": _prompt(scenario),
+        "store": False,
+    }
+    if reasoning_effort:
+        payload_body["reasoning"] = {"effort": reasoning_effort}
+    payload = json.dumps(payload_body).encode()
     request = urllib.request.Request(
         endpoint,
         data=payload,
@@ -123,6 +147,8 @@ def run_probe(output: Path, model: str | None = None) -> dict[str, object]:
         "run_id": run_id,
         "model": model_name,
         "runtime_lane": "hosted",
+        "scenario": scenario,
+        "reasoning_effort": reasoning_effort,
         "trace_path": str(output),
         "response_id": body.get("id"),
         "usage": body.get("usage", {}),
@@ -187,3 +213,53 @@ def run_baseline(
         json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
     return summary
+
+
+def observe_cost_envelope(
+    report: dict[str, object], baseline_summary: dict[str, object], multiplier: float = 1.25
+) -> dict[str, object]:
+    """Compare one hosted call with a narrow same-lane baseline."""
+    if multiplier <= 1:
+        raise ValueError("multiplier must be greater than 1")
+    baseline = baseline_summary["summary"]
+    output_limit = float(baseline["output_tokens"]["max"]) * multiplier
+    duration_limit = float(baseline["duration_ms"]["max"]) * multiplier
+    exceeded_metrics = []
+    if float(report["output_tokens"]) > output_limit:
+        exceeded_metrics.append("output_tokens")
+    if float(report["duration_ms"]) > duration_limit:
+        exceeded_metrics.append("duration_ms")
+    return {
+        "type": "hosted_cost_envelope",
+        "baseline_run_count": baseline["run_count"],
+        "multiplier": multiplier,
+        "output_token_limit": round(output_limit, 3),
+        "duration_ms_limit": round(duration_limit, 3),
+        "observed_output_tokens": report["output_tokens"],
+        "observed_duration_ms": report["duration_ms"],
+        "exceeded": bool(exceeded_metrics),
+        "exceeded_metrics": exceeded_metrics,
+    }
+
+
+def run_cost_probe(
+    output_root: Path, baseline_path: Path, model: str | None = None
+) -> dict[str, object]:
+    """Run one higher-effort call and compare its cost with a baseline summary."""
+    result = run_probe(
+        output_root / "raw-trace.jsonl",
+        model=model,
+        scenario="cost-stress",
+        reasoning_effort="high",
+    )
+    report = analyze(output_root / "raw-trace.jsonl")[0]
+    baseline = json.loads(baseline_path.read_text(encoding="utf-8"))
+    observation = observe_cost_envelope(report, baseline)
+    output_root.mkdir(parents=True, exist_ok=True)
+    (output_root / "analysis.json").write_text(
+        json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    (output_root / "cost-observation.json").write_text(
+        json.dumps(observation, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    return {"result": result, "report": report, "observation": observation}
